@@ -2,12 +2,14 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/mmtaee/ocserv-users-management/api/pkg/request"
 	"github.com/mmtaee/ocserv-users-management/common/models"
 	"github.com/mmtaee/ocserv-users-management/common/ocserv/occtl"
 	"github.com/mmtaee/ocserv-users-management/common/ocserv/user"
 	"github.com/mmtaee/ocserv-users-management/common/pkg/database"
 	"gorm.io/gorm"
+	"io"
 	"strings"
 	"time"
 )
@@ -69,12 +71,17 @@ type OcservUserActions interface {
 	RestoreExpired(ctx context.Context, uid string, expireAt *time.Time) error
 }
 
+type OcservUserBackup interface {
+	Backup(ctx context.Context, writer io.Writer) error
+}
+
 type OcservUserRepositoryInterface interface {
 	OcservUserCRUD
 	OcservUserStats
 	OcservUserPassword
 	OcservUserGroup
 	OcservUserActions
+	OcservUserBackup
 }
 
 func NewtOcservUserRepository() *OcservUserRepository {
@@ -595,4 +602,49 @@ func (o *OcservUserRepository) RestoreExpired(ctx context.Context, uid string, e
 
 		return nil
 	})
+}
+
+func (o *OcservUserRepository) Backup(ctx context.Context, writer io.Writer) error {
+	rows, err := o.db.WithContext(ctx).
+		Model(&models.OcservUser{}).
+		Rows()
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	encoder := json.NewEncoder(writer)
+
+	// Start JSON array
+	if _, err = writer.Write([]byte("[")); err != nil {
+		return err
+	}
+
+	first := true
+
+	for rows.Next() {
+		var u models.OcservUser
+		if err = o.db.ScanRows(rows, &u); err != nil {
+			return err
+		}
+
+		if !first {
+			if _, err = writer.Write([]byte(",")); err != nil {
+				return err
+			}
+		}
+		first = false
+
+		// Encode directly to writer
+		if err = encoder.Encode(u); err != nil {
+			return err
+		}
+	}
+
+	// Close JSON array
+	if _, err = writer.Write([]byte("]")); err != nil {
+		return err
+	}
+
+	return nil
 }
