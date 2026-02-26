@@ -17,6 +17,7 @@
 export * from './api/customers-api';
 export * from './api/home-api';
 export * from './api/occtlapi';
+export * from './api/ocserv-backup-api';
 export * from './api/ocserv-bandwidth-api';
 export * from './api/ocserv-groups-api';
 export * from './api/ocserv-ocpasswd-api';

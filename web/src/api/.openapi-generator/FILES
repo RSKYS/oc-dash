@@ -4,6 +4,7 @@ api.ts
 api/customers-api.ts
 api/home-api.ts
 api/occtlapi.ts
+api/ocserv-backup-api.ts
 api/ocserv-bandwidth-api.ts
 api/ocserv-groups-api.ts
 api/ocserv-ocpasswd-api.ts
