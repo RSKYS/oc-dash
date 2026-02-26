@@ -17,7 +17,6 @@
 export * from './api/customers-api';
 export * from './api/home-api';
 export * from './api/occtlapi';
-export * from './api/ocserv-backup-api';
 export * from './api/ocserv-bandwidth-api';
 export * from './api/ocserv-groups-api';
 export * from './api/ocserv-ocpasswd-api';
@@ -25,5 +24,6 @@ export * from './api/ocserv-statistics-api';
 export * from './api/ocserv-unsynced-group-api';
 export * from './api/ocserv-users-api';
 export * from './api/system-api';
+export * from './api/system-backup-api';
 export * from './api/system-users-api';
 
