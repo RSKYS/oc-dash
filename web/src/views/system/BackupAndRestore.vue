@@ -4,8 +4,7 @@ import Restore from '@/components/system/Restore.vue';
 import Backup from '@/components/system/Backup.vue';
 import { useI18n } from 'vue-i18n';
 
-const {t} = useI18n()
-
+const { t } = useI18n();
 </script>
 
 <template>
@@ -29,4 +28,3 @@ const {t} = useI18n()
         </v-col>
     </v-row>
 </template>
-

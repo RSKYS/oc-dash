@@ -35,8 +35,8 @@ const SystemRoutes: RouteRecordRaw[] = [
         children: [
             {
                 path: '', // NO leading slash
-                name: 'Backup',
-                component: () => import('@/views/system/Backup.vue')
+                name: 'Backup And Restore',
+                component: () => import('@/views/system/BackupAndRestore.vue')
             }
         ]
     }
