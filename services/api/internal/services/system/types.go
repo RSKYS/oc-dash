@@ -1,8 +1,8 @@
 package system
 
 import (
-	"github.com/mmtaee/ocserv-users-management/api/internal/models"
-	"github.com/mmtaee/ocserv-users-management/api/pkg/request"
+	"github.com/mmtaee/ocserv-dashboard/api/internal/models"
+	"github.com/mmtaee/ocserv-dashboard/api/pkg/request"
 )
 
 type GetSystemInitResponse struct {

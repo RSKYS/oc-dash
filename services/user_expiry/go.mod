@@ -1,9 +1,9 @@
-module github.com/mmtaee/ocserv-users-management/user_expiry
+module github.com/mmtaee/ocserv-dashboard/user_expiry
 
 go 1.25.0
 
 require (
-	github.com/mmtaee/ocserv-users-management/common v0.0.0-00010101000000-000000000000
+	github.com/mmtaee/ocserv-dashboard/common v0.0.0-00010101000000-000000000000
 	github.com/robfig/cron/v3 v3.0.1
 	gorm.io/gorm v1.30.1
 )
@@ -17,4 +17,4 @@ require (
 	gorm.io/driver/sqlite v1.6.0 // indirect
 )
 
-replace github.com/mmtaee/ocserv-users-management/common => ./../common
+replace github.com/mmtaee/ocserv-dashboard/common => ./../common

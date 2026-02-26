@@ -1,7 +1,7 @@
 package crypto_test
 
 import (
-	"github.com/mmtaee/ocserv-users-management/api/pkg/crypto"
+	"github.com/mmtaee/ocserv-dashboard/api/pkg/crypto"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"

@@ -7,10 +7,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	LabstackLog "github.com/labstack/gommon/log"
-	"github.com/mmtaee/ocserv-users-management/api/internal/providers/routing"
-	"github.com/mmtaee/ocserv-users-management/api/pkg/routing/middlewares"
-	"github.com/mmtaee/ocserv-users-management/common/pkg/config"
-	"github.com/mmtaee/ocserv-users-management/common/pkg/logger"
+	"github.com/mmtaee/ocserv-dashboard/api/internal/providers/routing"
+	"github.com/mmtaee/ocserv-dashboard/api/pkg/routing/middlewares"
+	"github.com/mmtaee/ocserv-dashboard/common/pkg/config"
+	"github.com/mmtaee/ocserv-dashboard/common/pkg/logger"
 	"github.com/olekukonko/tablewriter"
 	"github.com/olekukonko/tablewriter/renderer"
 	"github.com/olekukonko/tablewriter/tw"
@@ -41,8 +41,8 @@ func Serve(cfg *config.Config) {
 
 	e = echo.New()
 
-	e.Logger = NewLoggerWrapper(logger.GetLogger())
-
+	//e.Logger = NewLoggerWrapper(logger.GetLogger())
+	
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middlewares.RequestLoggerMiddleware())
 	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
@@ -73,6 +73,8 @@ func Serve(cfg *config.Config) {
 		e.Debug = true
 		e.Logger.SetLevel(LabstackLog.DEBUG)
 		verboseLog(server)
+
+		e.GET("/swagger/*", echoSwagger.WrapHandler)
 	} else {
 		e.Logger.SetLevel(LabstackLog.INFO)
 		e.HideBanner = true
@@ -85,23 +87,29 @@ func Serve(cfg *config.Config) {
 		})
 	})
 
-	if cfg.Debug {
-		e.GET("/swagger/*", echoSwagger.WrapHandler)
-	}
-
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Skipper: func(c echo.Context) bool {
-			if strings.Contains(c.Request().URL.Path, "swagger") {
+			path := c.Path()
+
+			switch {
+			case strings.HasPrefix(path, "/swagger"):
+				return true
+			case strings.HasPrefix(path, "/api/v1/ocserv/users/backup"):
+				return true
+			case strings.HasPrefix(path, "/api/v1/ocserv/groups/backup"):
 				return true
 			}
+
 			return false
 		},
 	}))
 
 	err := e.Start(server)
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
-		e.Logger.Fatal("shutting down the server", err)
+		fmt.Printf("shutting down the server: %v\n", err) // use fmt, not Fatal
+		os.Exit(1)
 	}
+
 	logger.Info("Starting server at " + server)
 }
 

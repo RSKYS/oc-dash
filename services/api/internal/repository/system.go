@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 	"errors"
-	"github.com/mmtaee/ocserv-users-management/api/internal/models"
-	"github.com/mmtaee/ocserv-users-management/common/pkg/database"
+	"github.com/mmtaee/ocserv-dashboard/api/internal/models"
+	"github.com/mmtaee/ocserv-dashboard/common/pkg/database"
 	"gorm.io/gorm"
 )
 
@@ -44,7 +44,7 @@ func (s *SystemRepository) SystemSetup(ctx context.Context, user *models.User, s
 		if err != nil {
 			return err
 		}
-		
+
 		return nil
 	})
 	return user, system, err
