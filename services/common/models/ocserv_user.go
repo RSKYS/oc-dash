@@ -16,7 +16,7 @@ type OcservUserConfig struct {
 	// The pool of addresses from which to assign to the user. Example: '192.168.1.0/24'
 	IPv4Network *string `json:"ipv4-network"`
 
-	// Comma-separated list of DNS servers to assign to the user. Example: '8.8.8.8,1.1.1.1'
+	// Comma-separated list of DNS servers to assign to the user. Example: '94.140.14.14,4.2.2.4'
 	DNS *CSVStringList `json:"dns" gorm:"type:text"`
 
 	// NetBIOS Name Servers (WINS) for Windows clients. Example: '192.168.1.1'

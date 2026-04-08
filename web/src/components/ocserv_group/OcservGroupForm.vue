@@ -6,22 +6,10 @@ import { requiredRule } from '@/utils/rules';
 import { getFormFields } from '@/components/ocserv_group/items';
 
 const props = defineProps({
-    btnText: {
-        type: String,
-        default: 'create'
-    },
-    btnColor: {
-        type: String,
-        default: 'primary'
-    },
-    initData: {
-        type: Object as () => ModelsOcservGroup,
-        required: false
-    },
-    loading: {
-        type: Boolean,
-        default: false
-    }
+    btnText: { type: String, default: 'create' },
+    btnColor: { type: String, default: 'primary' },
+    initData: { type: Object as () => ModelsOcservGroup, required: false },
+    loading: { type: Boolean, default: false }
 });
 
 const emit = defineEmits(['createGroup', 'updateGroup']);
@@ -29,67 +17,57 @@ const emit = defineEmits(['createGroup', 'updateGroup']);
 const { t } = useI18n();
 const valid = ref(true);
 const isUpdate = ref(false);
-const rules = {
-    required: (v: string) => requiredRule(v, t)
-};
+const rules = { required: (v: string) => requiredRule(v, t) };
 
 const createData = reactive<OcservGroupCreateOcservGroupData>({ config: {}, name: '' });
 
 const fieldItems = getFormFields();
-const chipInputs = reactive<Record<string, string>>({
-    dns: '',
-    route: '',
-    'no-route': '',
-    'split-dns': ''
-});
+const chipInputs = reactive<Record<string, string>>({ dns: '', route: '', 'no-route': '', 'split-dns': '' });
 
-const createGroup = () => {
-    emit('createGroup', createData);
-};
+const bulkRouteFields = new Set(['route', 'no-route']);
 
-const updateGroup = () => {
-    emit('updateGroup', props.initData?.id, createData.config);
-};
+const parseCsv = (value: string) =>
+    value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+
+const createGroup = () => emit('createGroup', createData);
+const updateGroup = () => emit('updateGroup', props.initData?.id, createData.config);
 
 const addRoutes = (key: string) => {
     const typedKey = key as keyof ModelsOcservGroupConfig;
     const input = chipInputs[typedKey];
+    if (!input) return;
 
-    if (input) {
-        if (!Array.isArray(createData.config[typedKey])) {
-            createData.config[typedKey] = [] as any;
-        }
-
-        const arr = createData.config[typedKey] as string[];
-
-        if (!arr.includes(input)) {
-            arr.push(input);
-            chipInputs[typedKey] = '';
-        }
+    if (!Array.isArray(createData.config[typedKey])) {
+        createData.config[typedKey] = [] as any;
     }
+    const arr = createData.config[typedKey] as string[];
+    const values = bulkRouteFields.has(key) ? parseCsv(input) : [input.trim()].filter(Boolean);
+
+    values.forEach((value) => {
+        if (!arr.includes(value)) {
+            arr.push(value);
+        }
+    });
+
+    chipInputs[typedKey] = '';
 };
 
 const removeRoute = (key: string, value: string) => {
     const typedKey = key as keyof ModelsOcservGroupConfig;
     const arr = createData.config[typedKey] as string[];
-
-    let index = arr.findIndex((i) => i == value);
-    if (index !== -1) {
-        arr.splice(index, 1);
-    }
+    const index = arr.findIndex(i => i === value);
+    if (index !== -1) arr.splice(index, 1);
 };
 
-watch(
-    () => props.initData,
-    () => {
-        console.log('props.initData: ', props.initData);
-        if (props.initData !== undefined) {
-            Object.assign(createData, props.initData);
-            isUpdate.value = true;
-        }
-    },
-    { immediate: false }
-);
+watch(() => props.initData, () => {
+    if (props.initData !== undefined) {
+        Object.assign(createData, props.initData);
+        isUpdate.value = true;
+    }
+}, { immediate: false });
 </script>
 
 <template>
@@ -109,6 +87,7 @@ watch(
                     variant="outlined"
                 />
             </v-col>
+
             <v-col cols="12" md="11">
                 <h3 class="text-capitalize">{{ t('NETWORK_CONFIGURATION') }}</h3>
             </v-col>
@@ -193,7 +172,7 @@ watch(
                             <v-card-title class="text-subtitle-2 pa-3"> {{ field.label }}:</v-card-title>
                             <v-card-text>
                                 <v-chip
-                                    v-for="chip in createData.config[field.key as keyof ModelsOcservGroupConfig]"
+                                    v-for="chip in (createData.config[field.key as keyof ModelsOcservGroupConfig] || [])"
                                     :key="`${field.key}-${chip}`"
                                     class="me-2 my-1"
                                     color="primary"
@@ -211,12 +190,7 @@ watch(
 
     <v-row align="center" class="me-0 mt-5" justify="end">
         <v-col cols="auto">
-            <v-btn
-                :color="btnColor"
-                :disabled="!valid"
-                :loading="loading"
-                @click="isUpdate ? updateGroup() : createGroup()"
-            >
+            <v-btn :color="btnColor" :disabled="!valid" :loading="loading" @click="isUpdate ? updateGroup() : createGroup()">
                 {{ btnText }}
             </v-btn>
         </v-col>

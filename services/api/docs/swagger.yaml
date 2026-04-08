@@ -270,7 +270,7 @@ definitions:
         type: boolean
       dns:
         description: 'Comma-separated list of DNS servers to assign to the client.
-          Example: ''8.8.8.8,1.1.1.1'''
+          Example: ''94.140.14.14,4.2.2.4'''
         items:
           type: string
         type: array
@@ -425,7 +425,7 @@ definitions:
     properties:
       dns:
         description: 'Comma-separated list of DNS servers to assign to the user. Example:
-          ''8.8.8.8,1.1.1.1'''
+          ''94.140.14.14,4.2.2.4'''
         items:
           type: string
         type: array

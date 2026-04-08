@@ -13,26 +13,11 @@ import { formatDate } from '@/utils/convertors';
 import { getFormFields } from '@/components/ocserv_user/items';
 
 const props = defineProps({
-    btnText: {
-        type: String,
-        default: 'create'
-    },
-    btnColor: {
-        type: String,
-        default: 'primary'
-    },
-    initData: {
-        type: Object as () => ModelsOcservUser,
-        required: false
-    },
-    loading: {
-        type: Boolean,
-        default: false
-    },
-    groups: {
-        type: Array as () => String[],
-        default: ['defaults']
-    }
+    btnText: { type: String, default: 'create' },
+    btnColor: { type: String, default: 'primary' },
+    initData: { type: Object as () => ModelsOcservUser, required: false },
+    loading: { type: Boolean, default: false },
+    groups: { type: Array as () => String[], default: () => ['defaults'] }
 });
 
 const emit = defineEmits(['createUser', 'updateUser']);
@@ -40,19 +25,20 @@ const emit = defineEmits(['createUser', 'updateUser']);
 const { t } = useI18n();
 const valid = ref(true);
 const isUpdate = ref(false);
-const rules = {
-    required: (v: string) => requiredRule(v, t)
-};
+const rules = { required: (v: string) => requiredRule(v, t) };
 
 const showDateMenu = ref(false);
 const showPassword = ref(false);
 const fieldItems = getFormFields();
-const chipInputs = reactive<Record<string, string>>({
-    dns: '',
-    route: '',
-    'no-route': '',
-    'split-dns': ''
-});
+const chipInputs = reactive<Record<string, string>>({ dns: '', route: '', 'no-route': '', 'split-dns': '' });
+
+const bulkRouteFields = new Set(['route', 'no-route']);
+
+const parseCsv = (value: string) =>
+    value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
 
 const trafficTypes = ref([
     {
@@ -100,11 +86,15 @@ const addRoutes = (key: string) => {
         }
 
         const arr = createData.config[typedKey] as string[];
+        const values = bulkRouteFields.has(key) ? parseCsv(input) : [input.trim()].filter(Boolean);
 
-        if (!arr.includes(input)) {
-            arr.push(input);
-            chipInputs[typedKey] = '';
-        }
+        values.forEach((value) => {
+            if (!arr.includes(value)) {
+                arr.push(value);
+            }
+        });
+
+        chipInputs[typedKey] = '';
     }
 };
 
@@ -119,10 +109,7 @@ const removeRoute = (key: string, value: string) => {
     }
 };
 
-const createUser = () => {
-    emit('createUser', createData);
-};
-
+const createUser = () => emit('createUser', createData);
 const updateUser = () => {
     Object.assign(updateData, createData);
     emit('updateUser', props.initData?.uid, updateData);
@@ -143,19 +130,13 @@ const expireAtDate = computed<Date>({
     }
 });
 
-watch(
-    () => props.initData,
-    () => {
-        if (props.initData !== undefined) {
-            Object.assign(createData, props.initData);
-            isUpdate.value = true;
-            if (createData.expire_at == undefined) {
-                createData.unlimited = true;
-            }
-        }
-    },
-    { immediate: false }
-);
+watch(() => props.initData, () => {
+    if (props.initData !== undefined) {
+        Object.assign(createData, props.initData);
+        isUpdate.value = true;
+        if (createData.expire_at == undefined) createData.unlimited = true;
+    }
+}, { immediate: false });
 </script>
 
 <template>
@@ -362,7 +343,7 @@ watch(
                             <v-card-title class="text-subtitle-2 pa-3"> {{ field.label }}:</v-card-title>
                             <v-card-text>
                                 <v-chip
-                                    v-for="chip in createData.config[field.key as keyof ModelsOcservUserConfig]"
+                                    v-for="chip in (createData.config[field.key as keyof ModelsOcservUserConfig] || [])"
                                     :key="`${field.key}-${chip}`"
                                     class="me-2 my-1"
                                     color="primary"
@@ -380,12 +361,7 @@ watch(
 
     <v-row align="center" class="me-0 mt-5" justify="end">
         <v-col cols="auto">
-            <v-btn
-                :color="btnColor"
-                :disabled="!valid"
-                :loading="loading"
-                @click="isUpdate ? updateUser() : createUser()"
-            >
+            <v-btn :color="btnColor" :disabled="!valid" :loading="loading" @click="isUpdate ? updateUser() : createUser()">
                 {{ btnText }}
             </v-btn>
         </v-col>

@@ -21,7 +21,7 @@
  */
 export interface ModelsOcservUserConfig {
     /**
-     * Comma-separated list of DNS servers to assign to the user. Example: \'8.8.8.8,1.1.1.1\'
+     * Comma-separated list of DNS servers to assign to the user. Example: \'94.140.14.14,4.2.2.4\'
      * @type {Array<string>}
      * @memberof ModelsOcservUserConfig
      */

@@ -1,6 +1,6 @@
 import { reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { domainRule, ipOrRangeRule, ipRule, ipWithRangeRule } from '@/utils/rules';
+import { domainRule, ipOrRangeRule, ipRule, ipWithRangeRule, csvIpOrRangeRule } from '@/utils/rules';
 
 function getFormFields() {
     const { t } = useI18n();
@@ -8,7 +8,8 @@ function getFormFields() {
         ip: (v: string) => ipRule(v, t),
         ipOrRange: (v: string) => ipOrRangeRule(v, t),
         domain: (v: string) => domainRule(v, t),
-        ipWithRange: (v: string) => ipWithRangeRule(v, t)
+        ipWithRange: (v: string) => ipWithRangeRule(v, t),
+        csvIpOrRange: (v: string) => csvIpOrRangeRule(v, t)
     };
 
     const fields = [
@@ -85,24 +86,24 @@ function getFormFields() {
             key: 'route',
             label: 'Route',
             type: 'text',
-            example: '10.0.0.0/8',
-            hint: t('ROUTES_ASSIGNED_TO_CLIENT'),
-            rules: [rules.ipOrRange]
+            example: '10.10.0.0/16,10.10.10.0/24,10.0.0.0/8',
+            hint: `${t('ROUTES_ASSIGNED_TO_CLIENT')} (comma-separated)`,
+            rules: [rules.csvIpOrRange]
         },
         {
             key: 'no-route',
             label: 'No Route',
             type: 'text',
-            hint: t('NON_VPN_NETWORKS'),
-            example: '172.16.0.0/12',
-            rules: [rules.ipOrRange]
+            hint: `${t('NON_VPN_NETWORKS')} (comma-separated)`,
+            example: '192.168.0.0/16,10.0.0.0/8',
+            rules: [rules.csvIpOrRange]
         },
         {
             key: 'dns',
             label: 'DNS',
             type: 'text',
             hint: t('DNS_SERVERS_LIST'),
-            example: '8.8.8.8/example.com',
+            example: '94.140.14.14/example.com',
             rules: [rules.ip]
         },
         {

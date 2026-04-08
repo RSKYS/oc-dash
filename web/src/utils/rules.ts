@@ -6,6 +6,28 @@ const ipOrRangeRule: Validator = (v, t) => {
     return v && !v.match(ipFormat) ? t('IP_FORMAT_WITH_RANGE_REQUIRED') : true;
 };
 
+const csvIpOrRangeRule: Validator = (v, t) => {
+    if (!v) return true;
+
+    const items = String(v)
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+
+    if (items.length === 0) {
+        return t('IP_FORMAT_WITH_RANGE_REQUIRED');
+    }
+
+    for (const item of items) {
+        const result = ipOrRangeRule(item, t);
+        if (result !== true) {
+            return result;
+        }
+    }
+
+    return true;
+};
+
 const requiredRule: Validator = (v, t) => {
     return !!v || t('FIELD_REQUIRED');
 };
@@ -49,4 +71,4 @@ const ipWithRangeRule: Validator = (v, t) => {
     return t('(IP/SUBNET)_or_(IP/RANGE)_FORMAT_REQUIRED');
 };
 
-export { ipOrRangeRule, requiredRule, numberRule, ipRule, ipWithNetmaskRule, domainRule, ipWithRangeRule };
+export { ipOrRangeRule, requiredRule, numberRule, ipRule, ipWithNetmaskRule, domainRule, ipWithRangeRule, csvIpOrRangeRule };

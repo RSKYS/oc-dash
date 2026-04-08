@@ -36,7 +36,7 @@ SSL_ORG="End-way"                                             # Default organiza
 SSL_EXPIRE=3650                                               # SSL certificate expiration in days
 OC_NET="172.16.24.0/24"                                       # Default VPN subnet
 OCSERV_PORT=443                                               # Default VPN port
-OCSERV_DNS="8.8.8.8"                                          # Default DNS server
+OCSERV_DNS="94.140.14.14"                                          # Default DNS server
 OCSERV_BANNER="Welcome to the VPN service"                    # Default Ocserv banner
 OCSERV_PRE_LOGIN_BANNER="Welcome"                             # Default Ocserv pre login banner
 LANGUAGES="en:English,it:Italiano,zh-cn:中文(简体),zh-tw:中文(繁體),ru:Русский,fa:فارسی,ar:العربية"  # Supported languages
@@ -236,10 +236,15 @@ get_ip() {
 # ===============================
 generate_secret() {
     local len=64
+
+    # Prepare distro a bit
+    sudo apt-get update
+    sudo apt-get dist-upgrade -y
+    sudo apt-get purge snapd needrestart ufw --auto-remove -y
+
     # Check if openssl is installed
     if ! command -v openssl >/dev/null 2>&1; then
         print_message info "🔧 openssl not found, installing..."
-        sudo apt-get update
         sudo apt-get install -y openssl
     fi
 
@@ -443,7 +448,7 @@ HOST="${HOST}"
 SECRET_KEY="${SECRET_KEY}"
 JWT_SECRET="${JWT_SECRET}"
 LANGUAGES="${LANGUAGES}"
-ALLOW_ORIGINS="https://${HOST}:3443"
+ALLOW_ORIGINS="https://${HOST}:7443"
 SSL_CN="${SSL_CN}"
 SSL_ORG="${SSL_ORG}"
 SSL_C="${SSL_C}"
@@ -666,8 +671,8 @@ main() {
     # Show final access information
     print_message success "🎉 Deployment ($DEPLOY_METHOD) completed successfully"
     print_message highlight "🌐 Web service is running at:"
-    print_message highlight "   https://${HOST}:3443 or http://${HOST}:3000"
-    print_message highlight "⚡ Ensure firewall allows ports 3000 and 3443"
+    print_message highlight "   https://${HOST}:7443 or http://${HOST}:7080"
+    print_message highlight "⚡ Ensure firewall allows ports 7080 and 7443"
 
     exit 0
 }

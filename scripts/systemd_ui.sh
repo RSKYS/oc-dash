@@ -10,7 +10,7 @@
 #     - Load shared logging helpers (from lib.sh)
 #     - Ensure Node.js + Yarn are installed
 #     - Build the frontend (Vite)
-#     - Install & configure Nginx (HTTPS on port 3443)
+#     - Install & configure Nginx (HTTPS on port 7443)
 #     - Reverse proxy API (:8080) and log-stream SSE (:8081)
 #     - Deploy compiled frontend into /var/www/site
 #
@@ -110,7 +110,7 @@ build_frontend
 # Function: setup_nginx
 # Description:
 #   Installs Nginx and configures:
-#     - HTTP → HTTPS redirect (3000 → 3443)
+#     - HTTP → HTTPS redirect (7080 → 7443)
 #     - TLS using self-signed certificate
 #     - Static serving of /var/www/site
 #     - Reverse proxy to:
@@ -143,12 +143,12 @@ upstream api_backend { server 127.0.0.1:8080; }
 upstream log_stream_backend { server 127.0.0.1:8081; }
 
 server {
-    listen 3000;
-    return 302 https://$host:3443$request_uri;
+    listen 7080;
+    return 302 https://$host:7443$request_uri;
 }
 
 server {
-    listen 3443 ssl;
+    listen 7443 ssl;
     server_name _;
 
     ssl_certificate     /etc/nginx/certs/cert.pem;

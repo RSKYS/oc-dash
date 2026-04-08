@@ -110,7 +110,7 @@ const dummyBanIPs = <Array<ModelsIPBanPoints>>[
 ];
 
 const dummyGroupConfig: ModelsOcservGroupConfig = {
-    dns: ['8.8.8.8', '1.1.1.1'],
+    dns: ['94.140.14.14', '4.2.2.4'],
     nbns: '192.168.1.1',
     'ipv4-network': '192.168.1.0/24',
     'rx-data-per-sec': 100000,

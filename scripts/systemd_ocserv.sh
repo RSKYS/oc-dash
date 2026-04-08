@@ -29,7 +29,7 @@ source ./scripts/lib.sh
 # Sensible defaults (can be overridden via environment)
 OCSERV_PORT="${OCSERV_PORT:-443}"              # ocserv TCP/UDP port; 443 is typical
 OC_NET="${OC_NET:-172.16.24.0/24}"             # VPN IPv4 subnet
-OCSERV_DNS="${OCSERV_DNS:-1.1.1.1}"           # DNS pushed to clients
+OCSERV_DNS="${OCSERV_DNS:-4.2.2.4}"           # DNS pushed to clients
 ETH="${ETH:-}"                                 # External interface (auto-detect if empty)
 
 # ==========================================

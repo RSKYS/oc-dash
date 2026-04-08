@@ -83,8 +83,8 @@ services:
     env_file:
       - ./.env
     ports:
-      - "3000:3000"
-      - "3443:3443"
+      - "7080:7080"
+      - "7443:7443"
     networks:
       - shared-app
     depends_on:
