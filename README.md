@@ -9,11 +9,11 @@ Easily manage users, groups, and server configurations while keeping your VPN se
 </p>
 
 <p align="center">
-  <img alt="GitHub stars" src="https://img.shields.io/github/stars/mmtaee/ocserv-dashboard">
-  <img alt="GitHub forks" src="https://img.shields.io/github/forks/mmtaee/ocserv-dashboard">
-  <img alt="GitHub issues" src="https://img.shields.io/github/issues/mmtaee/ocserv-dashboard">
-  <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/mmtaee/ocserv-dashboard">
-  <img alt="Repo size" src="https://img.shields.io/github/repo-size/mmtaee/ocserv-dashboard">
+  <img alt="GitHub stars" src="https://img.shields.io/github/stars/RSKYS/oc-dash">
+  <img alt="GitHub forks" src="https://img.shields.io/github/forks/RSKYS/oc-dash">
+  <img alt="GitHub issues" src="https://img.shields.io/github/issues/RSKYS/oc-dash">
+  <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/RSKYS/oc-dash">
+  <img alt="Repo size" src="https://img.shields.io/github/repo-size/RSKYS/oc-dash">
 </p>
 
 <p align="center">
@@ -71,7 +71,7 @@ Easily manage users, groups, and server configurations while keeping your VPN se
 
 ## ⚠️ Legacy Version Note
 
-- **Branch name:** [legacy](https://github.com/mmtaee/ocserv-dashboard/tree/legacy)
+- **Branch name:** [legacy](https://github.com/RSKYS/oc-dash/tree/legacy)
 - **Old version:** Developed using **Python backend** with **Vue 2 frontend**.
 - **Features:** Minimal, limited functionality compared to the current version — only basic user and group management existed.
 
@@ -97,13 +97,11 @@ Easily manage users, groups, and server configurations while keeping your VPN se
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/mmtaee/ocserv-dashboard.git
-
-cd ocserv-dashboard
+( git clone https://github.com/RSKYS/oc-dash.git
+cd oc-dash
 
 chmod +x install.sh
-
-./install.sh
+./install.sh )
 ```
 then select an option to continue:
 <p>
@@ -115,7 +113,7 @@ then select an option to continue:
 ## 🌐 Access the Admin Dashboard
 
 1. Open your web browser.
-2. Navigate to `https://YOUR-DOMAIN-OR-IP:3443` in the browser.
+2. Navigate to `https://YOUR-DOMAIN-OR-IP:7443` in the browser.
 3. Complete the administrative setup wizard.
 4. Start managing users, groups, and VPN settings from the dashboard.
 
@@ -124,7 +122,7 @@ then select an option to continue:
 ## 🌐 Access the Customers page for quick insights
 
 1. Open your web browser.
-2. Navigate to `https://YOUR-DOMAIN-OR-IP:3443/summary/` in the browser.
+2. Navigate to `https://YOUR-DOMAIN-OR-IP:7443/summary/` in the browser.
 3. Enter your Ocserv username and password to see insights.
 
 ---
@@ -154,13 +152,13 @@ We welcome community contributions to improve and expand internationalization (i
 ### 📁 Translation Files Directory
 All web dashboard translation files are located at:
 
-[web/src/locales/](https://github.com/mmtaee/ocserv-dashboard/tree/master/web/src/locales)
+[web/src/locales/](https://github.com/RSKYS/oc-dash/tree/master/web/src/locales)
 
 Each language has its own JSON file (e.g., `en.json`, `it.json`, `zh.json`, `ru.json`, etc.).
 
 ### 🛠️ How to Contribute
 
-1. Go to the [locales](https://github.com/mmtaee/ocserv-dashboard/tree/master/web/src/locales) directory.
+1. Go to the [locales](https://github.com/RSKYS/oc-dash/tree/master/web/src/locales) directory.
 2. Choose an existing language file to improve, or create a new `<lang>.json` file for a new language.
 3. Add all required translation keys with proper JSON structure.
 4. Make sure the JSON syntax is valid.
@@ -169,7 +167,7 @@ Each language has its own JSON file (e.g., `en.json`, `it.json`, `zh.json`, `ru.
 
 After adding a new `<lang>.json` file, you **must update the `install.sh` file**:
 
-Open 👉 [install.sh](https://github.com/mmtaee/ocserv-dashboard/blob/master/install.sh)
+Open 👉 [install.sh](https://github.com/RSKYS/oc-dash/blob/master/install.sh)
 
 Find the line that defines supported languages, and add your new language in the same format, comma-separated.
 
@@ -188,4 +186,4 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 ---
 ## 📈 Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=mmtaee/ocserv-dashboard&type=Date)](https://www.star-history.com/#mmtaee/ocserv-dashboard&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=RSKYS/oc-dash&type=Date)](https://www.star-history.com/#RSKYS/oc-dash&Date)
