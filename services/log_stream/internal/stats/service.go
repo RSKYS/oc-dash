@@ -104,7 +104,7 @@ func (s *StatService) save(ctx context.Context, u UserStats) error {
 	ocUser.Rx += u.RX
 	ocUser.Tx += u.TX
 
-	var trafficSizeBytes = ocUser.TrafficSize * (1 << 30)
+	trafficSizeBytes := ocUser.TrafficSize * float64(1<<30)
 
 	totalMonthStats, err := s.getCurrentMonthTotals(db, ocUser.ID)
 	if err != nil {
@@ -114,16 +114,16 @@ func (s *StatService) save(ctx context.Context, u UserStats) error {
 
 	switch ocUser.TrafficType {
 	case models.TotallyTransmit:
-		ocUser.IsLocked = ocUser.Tx >= trafficSizeBytes
+		ocUser.IsLocked = float64(ocUser.Tx) >= trafficSizeBytes
 
 	case models.TotallyReceive:
-		ocUser.IsLocked = ocUser.Rx >= trafficSizeBytes
+		ocUser.IsLocked = float64(ocUser.Rx) >= trafficSizeBytes
 
 	case models.MonthlyTransmit:
-		ocUser.IsLocked = totalMonthStats.TotalTx >= trafficSizeBytes
+		ocUser.IsLocked = float64(totalMonthStats.TotalTx) >= trafficSizeBytes
 
 	case models.MonthlyReceive:
-		ocUser.IsLocked = totalMonthStats.TotalRx >= trafficSizeBytes
+		ocUser.IsLocked = float64(totalMonthStats.TotalRx) >= trafficSizeBytes
 
 	case models.Free:
 

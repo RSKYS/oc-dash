@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n';
 import { onMounted, reactive, ref } from 'vue';
 import { type ModelsOcservUser, ModelsOcservUserTrafficTypeEnum, OcservUsersApi } from '@/api';
 import { getAuthorization } from '@/utils/request';
-import { bytesToGB, formatDate, trafficTypesTransformer } from '@/utils/convertors';
+import { bytesToGB, formatDate, trafficTypesTransformer, formatTrafficSize } from '@/utils/convertors';
 import DeleteDialog from '@/components/ocserv_user/DeleteDialog.vue';
 import Pagination from '@/components/shared/Pagination.vue';
 import type { Meta } from '@/types/metaTypes/MetaType';
@@ -293,7 +293,7 @@ const reload = () => {
                                             v-if="item.traffic_type != ModelsOcservUserTrafficTypeEnum.FREE"
                                             class="text-info text-capitalize"
                                         >
-                                            {{ item.traffic_size }} GB
+                                            {{ formatTrafficSize(item.traffic_size) }} GB
                                         </span>
 
                                         <span v-else class="text-info text-capitalize">

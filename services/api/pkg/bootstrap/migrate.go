@@ -19,9 +19,10 @@ var tables = []interface{}{
 func Migrate() {
 	logger.Info("starting migrations...")
 	engine := database.GetConnection()
-	err := engine.AutoMigrate(tables...)
-	if err != nil {
+
+	if err := engine.AutoMigrate(tables...); err != nil {
 		logger.Fatal("error in AutoMigrate: %v", err)
 	}
+
 	logger.Info("migration complete")
 }

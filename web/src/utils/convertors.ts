@@ -17,6 +17,11 @@ const bytesToGB = (bytes: number, fixture: number = 6): string => {
     return numberToFixer(result, fixture);
 };
 
+const formatTrafficSize = (size: number | null | undefined, fixture: number = 2): string => {
+    if (size === null || size === undefined) return '0';
+    return numberToFixer(size, fixture);
+};
+
 const formatDateTime = (dateString: string | undefined, message: string | undefined): string => {
     if (!dateString) {
         return message || '';
@@ -163,5 +168,6 @@ export {
     formatDateWithRelative,
     trafficTypesTransformer,
     numberToFixer,
-    toISODateString
+	toISODateString,
+	formatTrafficSize
 };

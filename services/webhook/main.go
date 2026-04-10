@@ -79,11 +79,6 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if payload.Username == "" {
-		http.Error(w, "Username is required", http.StatusBadRequest)
-		return
-	}
-
 	// Extract action from path: /webhook/<action>
 	parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 	if len(parts) < 2 {
@@ -96,6 +91,10 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch action {
 	case "disconnect":
+		if payload.Username == "" {
+			http.Error(w, "Username is required", http.StatusBadRequest)
+			return
+		}
 		msg, err := occtlHandler.DisconnectUser(payload.Username)
 		if err != nil {
 			http.Error(w, "Failed to disconnect user: "+err.Error(), http.StatusBadRequest)
@@ -104,6 +103,10 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 		_, _ = fmt.Fprintf(w, "User %s disconnected successfully. message: %s", payload.Username, msg)
 
 	case "lock":
+		if payload.Username == "" {
+			http.Error(w, "Username is required", http.StatusBadRequest)
+			return
+		}
 		msg, err := ocservUserHandler.Lock(payload.Username)
 		if err != nil {
 			http.Error(w, "Failed to lock user: "+err.Error(), http.StatusBadRequest)
@@ -112,6 +115,10 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 		_, _ = fmt.Fprintf(w, "User %s locked successfully. message: %s", payload.Username, msg)
 
 	case "unlock":
+		if payload.Username == "" {
+			http.Error(w, "Username is required", http.StatusBadRequest)
+			return
+		}
 		msg, err := ocservUserHandler.UnLock(payload.Username)
 		if err != nil {
 			http.Error(w, "Failed to unlock user: "+err.Error(), http.StatusBadRequest)

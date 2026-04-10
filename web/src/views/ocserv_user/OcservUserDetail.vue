@@ -15,7 +15,8 @@ import {
     formatDate,
     formatDateTimeWithRelative,
     formatDateWithRelative,
-    trafficTypesTransformer
+    trafficTypesTransformer,
+    formatTrafficSize
 } from '@/utils/convertors';
 
 const props = defineProps<{ uid: string }>();
@@ -153,11 +154,9 @@ onMounted(() => {
                                             {{ t('TRAFFIC_SIZE') }}:
                                         </span>
                                         <span class="ms-1 text-primary">
-                                            {{
-                                                result.traffic_size &&
-                                                result.traffic_type !== ModelsOcservUserTrafficTypeEnum.FREE
-                                                    ? result.traffic_size + ' GB'
-                                                    : t('FREE')
+                                            {{ result.traffic_type !== ModelsOcservUserTrafficTypeEnum.FREE
+                                                ? formatTrafficSize(result.traffic_size) + ' GB'
+                                                : t('FREE')
                                             }}
                                         </span>
                                     </v-col>

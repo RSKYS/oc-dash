@@ -125,6 +125,8 @@ const save = () => {
                                     "
                                     color="primary"
                                     hide-details
+                                    min="0.01"
+                                    step="0.01"
                                     suffix="GB"
                                     type="number"
                                     variant="outlined"

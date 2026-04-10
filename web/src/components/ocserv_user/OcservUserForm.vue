@@ -206,6 +206,8 @@ watch(() => props.initData, () => {
                     :rules="createData.traffic_type == ModelsOcservUserTrafficTypeEnum.FREE ? [] : [rules.required]"
                     color="primary"
                     hide-details
+                    min="0.01"
+                    step="0.01"
                     suffix="GB"
                     type="number"
                     variant="outlined"
