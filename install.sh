@@ -166,6 +166,10 @@ check_systemd_os() {
 check_go_version() {
     local go_mod_file="services/api/go.mod"
 
+    if [[ -d /usr/local/go/bin ]]; then
+        export PATH=$PATH:/usr/local/go/bin
+    fi
+
     if [[ ! -f "$go_mod_file" ]]; then
         die "❌ go.mod not found at $go_mod_file"
     fi
@@ -181,7 +185,8 @@ check_go_version() {
     fi
 
     if ! command -v go >/dev/null 2>&1; then
-        die "Go is not installed. Install from: https://go.dev/doc/install"
+        wget https://go.dev/dl/go1.26.2.linux-amd64.tar.gz # Get 1.26.2, as I'm currently lazy editing
+        rm -rf /usr/local/go && tar -C /usr/local -xzf go1.26.2.linux-amd64.tar.gz
     fi
 
     # Get current Go version (e.g., 1.25.5)
@@ -239,8 +244,8 @@ generate_secret() {
 
     # Prepare distro a bit
     sudo apt-get update
-    sudo apt-get dist-upgrade -y
-    sudo apt-get purge snapd needrestart ufw --auto-remove -y
+    # sudo apt-get dist-upgrade -y
+    # sudo apt-get purge snapd needrestart ufw --auto-remove -y
 
     # Check if openssl is installed
     if ! command -v openssl >/dev/null 2>&1; then
