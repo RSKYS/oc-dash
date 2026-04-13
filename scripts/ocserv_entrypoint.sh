@@ -18,7 +18,7 @@ OCSERV_CONF="/etc/ocserv/ocserv.conf"
 MANAGED_HEADER="# Managed by ocserv-dashboard install.sh"
 
 write_ocserv_conf() {
-  log "Writing Ocserv configuration..."
+  echo "Writing Ocserv configuration..."
   cat <<EOT >"$OCSERV_CONF"
 # ===============================================
 # Managed by ocserv-dashboard install.sh
@@ -71,10 +71,6 @@ EOT
 OCSERV_BANNER=$(echo "$OCSERV_BANNER" | awk '{printf "%s\\n", $0}' | sed 's/\\n$//')
 printf 'banner="%s"\n' "$OCSERV_BANNER" >> "$OCSERV_CONF"
 }
-
-
-
-
 
 # ------------------------------------------------
 # Validate existing config
@@ -155,4 +151,6 @@ if [ ! -c /dev/net/tun ]; then
 fi
 
 chmod 600 /dev/net/tun
+
+cd /usr/local/bin || exit
 exec "$@"
