@@ -70,7 +70,7 @@ export const SystemBackupApiAxiosParamCreator = function (configuration?: Config
             };
         },
         /**
-         * Download gzip compressed JSON backup of all ocserv users (including default group mapping if exists)
+         * Download gzip compressed JSON backup of all ocserv users
          * @summary Backup ocserv users
          * @param {string} authorization Bearer TOKEN
          * @param {*} [options] Override http request option.
@@ -129,7 +129,7 @@ export const SystemBackupApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Download gzip compressed JSON backup of all ocserv users (including default group mapping if exists)
+         * Download gzip compressed JSON backup of all ocserv users
          * @summary Backup ocserv users
          * @param {string} authorization Bearer TOKEN
          * @param {*} [options] Override http request option.
@@ -162,7 +162,7 @@ export const SystemBackupApiFactory = function (configuration?: Configuration, b
             return localVarFp.backupOcservGroupsGet(requestParameters.authorization, options).then((request) => request(axios, basePath));
         },
         /**
-         * Download gzip compressed JSON backup of all ocserv users (including default group mapping if exists)
+         * Download gzip compressed JSON backup of all ocserv users
          * @summary Backup ocserv users
          * @param {SystemBackupApiBackupOcservUsersGetRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
@@ -222,7 +222,7 @@ export class SystemBackupApi extends BaseAPI {
     }
 
     /**
-     * Download gzip compressed JSON backup of all ocserv users (including default group mapping if exists)
+     * Download gzip compressed JSON backup of all ocserv users
      * @summary Backup ocserv users
      * @param {SystemBackupApiBackupOcservUsersGetRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.

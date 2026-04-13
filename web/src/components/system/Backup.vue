@@ -53,7 +53,7 @@ const startDownload = async (name: 'ocservGroups' | 'ocservUsers') => {
 
         // Get filename from header if available
         const contentDisposition = res.headers['content-disposition'];
-        let filename = `${name}-backup.json.gz`;
+        let filename = `${name}-backup.json.gz`.toLowerCase();
         if (contentDisposition) {
             const match = contentDisposition.match(/filename="?(.+)"?/);
             if (match && match[1]) filename = match[1];
@@ -176,13 +176,7 @@ const progressColor = computed(() => {
                 {{ t('DOWNLOADING') }}
             </v-card-title>
             <v-card-text>
-                <v-progress-linear
-                    v-model="downloadProgress"
-                    height="12"
-                    :color="progressColor"
-                    striped
-                    rounded
-                />
+                <v-progress-linear v-model="downloadProgress" height="12" :color="progressColor" striped rounded />
                 <div class="text-subtitle-2 mt-2">{{ downloadProgress }}%</div>
             </v-card-text>
         </v-card>

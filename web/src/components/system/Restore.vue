@@ -2,12 +2,17 @@
 import UiChildCard from '@/components/shared/UiChildCard.vue';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { type BackupRestoreResponse, SystemRestoreApi } from '@/api';
+import { getAuthorization } from '@/utils/request';
+import RestoreResultDialog from '@/components/system/RestoreResultDialog.vue';
 
 const { t } = useI18n();
 
-const restoreType = ref('groups');
+const restoreType = ref<'users' | 'groups'>('users')
 const file = ref<File | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
+const showResults = ref(false);
+const result = ref<BackupRestoreResponse>({});
 
 function triggerFileSelect() {
     fileInput.value?.click();
@@ -17,11 +22,17 @@ function onFileSelected(event: Event) {
     const target = event.target as HTMLInputElement;
     const selectedFile = target.files?.[0];
 
-    if (selectedFile && selectedFile.type !== 'application/json' && !selectedFile.name.endsWith('.json')) {
-        if (fileInput.value) {
-            fileInput.value.value = '';
-        }
-        return;
+    if (!selectedFile) return
+
+    const isJson =
+        selectedFile.type === 'application/json' ||
+        selectedFile.name.endsWith('.json')
+
+    const isGzJson = selectedFile.name.endsWith('.json.gz')
+
+    if (!isJson && !isGzJson) {
+        if (fileInput.value) fileInput.value.value = ''
+        return
     }
 
     file.value = selectedFile || null;
@@ -39,6 +50,32 @@ function clearFile() {
         fileInput.value.value = '';
     }
 }
+
+const restore = () => {
+    if (!file.value) {
+        return;
+    }
+
+    const api = new SystemRestoreApi();
+
+    if (restoreType.value == 'users') {
+        api.backupOcservUsersPost({
+            ...getAuthorization(),
+            file: file.value
+        }).then((res) => {
+            result.value = res.data;
+            showResults.value = true;
+        });
+    } else {
+        api.backupOcservGroupsPost({
+            ...getAuthorization(),
+            file: file.value
+        }).then((res) => {
+            result.value = res.data;
+            showResults.value = true;
+        })
+    }
+};
 </script>
 
 <template>
@@ -73,7 +110,7 @@ function clearFile() {
                 </v-btn>
             </div>
 
-            <input ref="fileInput" type="file" class="d-none" @change="onFileSelected" accept=".json" />
+            <input ref="fileInput" type="file" class="d-none" @change="onFileSelected" accept=".json,.gz" />
 
             <!-- Browse Button -->
             <v-btn color="primary" class="mt-3" @click="triggerFileSelect">
@@ -93,9 +130,17 @@ function clearFile() {
 
         <!-- Upload & Restore Button -->
         <div class="mt-3 text-center">
-            <v-btn color="primary" size="large" :disabled="!file">
+            <v-btn color="primary" size="large" :disabled="!file" @click="restore">
                 {{ t('UPLOAD_AND_RESTORE') }}
             </v-btn>
         </div>
     </UiChildCard>
+
+    <RestoreResultDialog
+        :show="showResults"
+        :title="restoreType"
+        @close="showResults = false"
+        :inserted="result?.inserted || []"
+        :existing="result?.existing || []"
+    />
 </template>

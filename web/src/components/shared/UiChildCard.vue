@@ -23,7 +23,7 @@ defineProps({
 <template>
     <v-card elevation="10" :variant="variant" :width="width" :height="height">
         <v-card-item v-if="title || $slots['title-header']" :class="`bg-${titleColor}`" class="py-3">
-            <v-card-title class="text-h5 text-capitalize">
+            <v-card-title class="text-h5 text-capitalize" v-if="title">
                 {{ title }}
             </v-card-title>
             <slot name="title-header" />
