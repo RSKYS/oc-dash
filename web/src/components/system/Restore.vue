@@ -8,7 +8,7 @@ import RestoreResultDialog from '@/components/system/RestoreResultDialog.vue';
 
 const { t } = useI18n();
 
-const restoreType = ref<'users' | 'groups'>('users')
+const restoreType = ref<'users' | 'groups'>('users');
 const file = ref<File | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 const showResults = ref(false);
@@ -22,17 +22,15 @@ function onFileSelected(event: Event) {
     const target = event.target as HTMLInputElement;
     const selectedFile = target.files?.[0];
 
-    if (!selectedFile) return
+    if (!selectedFile) return;
 
-    const isJson =
-        selectedFile.type === 'application/json' ||
-        selectedFile.name.endsWith('.json')
+    const isJson = selectedFile.type === 'application/json' || selectedFile.name.endsWith('.json');
 
-    const isGzJson = selectedFile.name.endsWith('.json.gz')
+    const isGzJson = selectedFile.name.endsWith('.json.gz');
 
     if (!isJson && !isGzJson) {
-        if (fileInput.value) fileInput.value.value = ''
-        return
+        if (fileInput.value) fileInput.value.value = '';
+        return;
     }
 
     file.value = selectedFile || null;
@@ -73,7 +71,7 @@ const restore = () => {
         }).then((res) => {
             result.value = res.data;
             showResults.value = true;
-        })
+        });
     }
 };
 </script>

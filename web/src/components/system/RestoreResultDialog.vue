@@ -34,7 +34,7 @@ const titleTranslated = props.title == 'users' ? t('USERS') : t('GROUPS');
         <v-card>
             <v-card-title class="bg-primary">
                 <v-row align="end" justify="space-between" class="no-gutters">
-                    <v-col md="auto"> {{ titleTranslated }} {{ t('RESTORE_RESULT') }}</v-col>
+                    <v-col md="auto"> {{ t('RESTORE_RESULT') }} ({{ titleTranslated }}) </v-col>
                     <v-col md="auto">
                         <v-icon @click="emits('close')">mdi-close</v-icon>
                     </v-col>
@@ -42,7 +42,7 @@ const titleTranslated = props.title == 'users' ? t('USERS') : t('GROUPS');
             </v-card-title>
 
             <UiChildCard>
-                <template v-slot:title-header> {{ t('EXISTING') }} {{ titleTranslated }} : </template>
+                <template v-slot:title-header> {{ t('ALREADY_EXISTS') }}: </template>
 
                 <v-row align="center" justify="start">
                     <v-col md="auto" v-for="(username, index) in existing" :key="`existing-users-${index}`">
@@ -52,7 +52,7 @@ const titleTranslated = props.title == 'users' ? t('USERS') : t('GROUPS');
             </UiChildCard>
 
             <UiChildCard>
-                <template v-slot:title-header> {{ t('INSERTED') }} {{ titleTranslated }}: </template>
+                <template v-slot:title-header> {{ t('INSERTED') }}: </template>
 
                 <v-row align="center" justify="start">
                     <v-col md="auto" v-for="(username, index) in inserted" :key="`inserted-users-${index}`">
