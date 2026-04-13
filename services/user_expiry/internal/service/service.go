@@ -312,7 +312,9 @@ func (c *CornService) DeleteExpiredUsers(ctx context.Context, db *gorm.DB) {
 	err := db.WithContext(ctx).First(&system).Error
 	if err != nil {
 		logger.Error("Failed to get system: %v", err)
-		return
+		logger.Warn("set KeepInactiveUserDays to `30` and AutoDeleteInactiveUsers to `false`")
+		system.KeepInactiveUserDays = 30
+		system.AutoDeleteInactiveUsers = false
 	}
 
 	if !system.AutoDeleteInactiveUsers {
