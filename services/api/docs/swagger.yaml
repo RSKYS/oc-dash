@@ -1,5 +1,16 @@
 basePath: /api
 definitions:
+  backup.RestoreResponse:
+    properties:
+      existing:
+        items:
+          type: string
+        type: array
+      inserted:
+        items:
+          type: string
+        type: array
+    type: object
   customer.ModelCustomer:
     properties:
       deactivated_at:
@@ -975,10 +986,46 @@ paths:
       summary: Backup ocserv groups
       tags:
       - System(Backup)
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload JSON or gzip-compressed (.json.gz) backup of ocserv groups
+      parameters:
+      - description: Bearer TOKEN
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: JSON or JSON.GZ file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/backup.RestoreResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/request.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middlewares.Unauthorized'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/middlewares.PermissionDenied'
+      summary: Restore ocserv groups
+      tags:
+      - System(Restore)
   /backup/ocserv_users:
     get:
-      description: Download gzip compressed JSON backup of all ocserv users (including
-        default group mapping if exists)
+      description: Download gzip compressed JSON backup of all ocserv users
       parameters:
       - description: Bearer TOKEN
         in: header
@@ -1008,6 +1055,43 @@ paths:
       summary: Backup ocserv users
       tags:
       - System(Backup)
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload JSON or gzip-compressed (.json.gz) backup of ocserv users
+      parameters:
+      - description: Bearer TOKEN
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: JSON or JSON.GZ file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/backup.RestoreResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/request.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middlewares.Unauthorized'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/middlewares.PermissionDenied'
+      summary: Restore ocserv users
+      tags:
+      - System(Restore)
   /customers/disconnect_sessions:
     post:
       consumes:

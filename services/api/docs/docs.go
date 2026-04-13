@@ -61,11 +61,66 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "description": "Upload JSON or gzip-compressed (.json.gz) backup of ocserv groups",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System(Restore)"
+                ],
+                "summary": "Restore ocserv groups",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer TOKEN",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "JSON or JSON.GZ file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/backup.RestoreResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/request.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middlewares.Unauthorized"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/middlewares.PermissionDenied"
+                        }
+                    }
+                }
             }
         },
         "/backup/ocserv_users": {
             "get": {
-                "description": "Download gzip compressed JSON backup of all ocserv users (including default group mapping if exists)",
+                "description": "Download gzip compressed JSON backup of all ocserv users",
                 "produces": [
                     "application/json",
                     "application/gzip"
@@ -88,6 +143,61 @@ const docTemplate = `{
                         "description": "ocserv_users_backup.json.gz",
                         "schema": {
                             "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/request.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middlewares.Unauthorized"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/middlewares.PermissionDenied"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Upload JSON or gzip-compressed (.json.gz) backup of ocserv users",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System(Restore)"
+                ],
+                "summary": "Restore ocserv users",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer TOKEN",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "JSON or JSON.GZ file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/backup.RestoreResponse"
                         }
                     },
                     "400": {
@@ -2270,6 +2380,23 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "backup.RestoreResponse": {
+            "type": "object",
+            "properties": {
+                "existing": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "inserted": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "customer.ModelCustomer": {
             "type": "object",
             "required": [
