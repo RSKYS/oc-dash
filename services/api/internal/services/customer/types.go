@@ -1,7 +1,7 @@
 package customer
 
 import (
-	"github.com/mmtaee/ocserv-users-management/api/internal/repository"
+	"github.com/mmtaee/ocserv-dashboard/api/internal/repository"
 	"time"
 )
 

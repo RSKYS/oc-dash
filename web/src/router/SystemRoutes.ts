@@ -27,6 +27,18 @@ const SystemRoutes: RouteRecordRaw[] = [
                 component: () => import('@/views/system/System.vue')
             }
         ]
+    },
+    {
+        path: '/backup',
+        meta: { requiresAuth: true },
+        component: () => import('@/layouts/full/FullLayout.vue'),
+        children: [
+            {
+                path: '', // NO leading slash
+                name: 'Backup And Restore',
+                component: () => import('@/views/system/BackupAndRestore.vue')
+            }
+        ]
     }
 ];
 

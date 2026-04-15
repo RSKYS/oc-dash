@@ -1,4 +1,4 @@
-module github.com/mmtaee/ocserv-users-management/api
+module github.com/mmtaee/ocserv-dashboard/api
 
 go 1.25.0
 
@@ -9,7 +9,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/labstack/gommon v0.4.2
-	github.com/mmtaee/ocserv-users-management/common v0.0.0
+	github.com/mmtaee/ocserv-dashboard/common v0.0.0
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/olekukonko/tablewriter v1.0.9
 	github.com/spf13/cobra v1.9.1
@@ -66,4 +66,4 @@ require (
 	gorm.io/driver/sqlite v1.6.0 // indirect
 )
 
-replace github.com/mmtaee/ocserv-users-management/common => ./../common
+replace github.com/mmtaee/ocserv-dashboard/common => ./../common

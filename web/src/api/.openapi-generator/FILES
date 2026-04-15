@@ -11,11 +11,14 @@ api/ocserv-statistics-api.ts
 api/ocserv-unsynced-group-api.ts
 api/ocserv-users-api.ts
 api/system-api.ts
+api/system-backup-api.ts
+api/system-restore-api.ts
 api/system-users-api.ts
 common.ts
 configuration.ts
 git_push.sh
 index.ts
+models/backup-restore-response.ts
 models/customer-model-customer.ts
 models/customer-summary-data.ts
 models/customer-summary-response.ts

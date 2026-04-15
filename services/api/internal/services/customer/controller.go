@@ -3,8 +3,8 @@ package customer
 import (
 	"errors"
 	"github.com/labstack/echo/v4"
-	"github.com/mmtaee/ocserv-users-management/api/internal/repository"
-	"github.com/mmtaee/ocserv-users-management/api/pkg/request"
+	"github.com/mmtaee/ocserv-dashboard/api/internal/repository"
+	"github.com/mmtaee/ocserv-dashboard/api/pkg/request"
 	"net/http"
 	"strconv"
 	"time"

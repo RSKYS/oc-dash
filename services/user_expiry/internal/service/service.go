@@ -2,14 +2,14 @@ package service
 
 import (
 	"context"
-	commonModels "github.com/mmtaee/ocserv-users-management/common/models"
-	occtlDocker "github.com/mmtaee/ocserv-users-management/common/occtl_docker"
-	"github.com/mmtaee/ocserv-users-management/common/ocserv/occtl"
-	"github.com/mmtaee/ocserv-users-management/common/ocserv/user"
-	"github.com/mmtaee/ocserv-users-management/common/pkg/database"
-	"github.com/mmtaee/ocserv-users-management/common/pkg/logger"
-	"github.com/mmtaee/ocserv-users-management/user_expiry/internal/models"
-	stateManager "github.com/mmtaee/ocserv-users-management/user_expiry/pkg/state"
+	commonModels "github.com/mmtaee/ocserv-dashboard/common/models"
+	occtlDocker "github.com/mmtaee/ocserv-dashboard/common/occtl_docker"
+	"github.com/mmtaee/ocserv-dashboard/common/ocserv/occtl"
+	"github.com/mmtaee/ocserv-dashboard/common/ocserv/user"
+	"github.com/mmtaee/ocserv-dashboard/common/pkg/database"
+	"github.com/mmtaee/ocserv-dashboard/common/pkg/logger"
+	"github.com/mmtaee/ocserv-dashboard/user_expiry/internal/models"
+	stateManager "github.com/mmtaee/ocserv-dashboard/user_expiry/pkg/state"
 	"github.com/robfig/cron/v3"
 	"gorm.io/gorm"
 	"sync"
@@ -312,7 +312,9 @@ func (c *CornService) DeleteExpiredUsers(ctx context.Context, db *gorm.DB) {
 	err := db.WithContext(ctx).First(&system).Error
 	if err != nil {
 		logger.Error("Failed to get system: %v", err)
-		return
+		logger.Warn("set KeepInactiveUserDays to `30` and AutoDeleteInactiveUsers to `false`")
+		system.KeepInactiveUserDays = 30
+		system.AutoDeleteInactiveUsers = false
 	}
 
 	if !system.AutoDeleteInactiveUsers {

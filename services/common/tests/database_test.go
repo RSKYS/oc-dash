@@ -3,8 +3,8 @@
 package tests
 
 import (
-	"github.com/mmtaee/ocserv-users-management/common/pkg/config"
-	"github.com/mmtaee/ocserv-users-management/common/pkg/database"
+	"github.com/mmtaee/ocserv-dashboard/common/pkg/config"
+	"github.com/mmtaee/ocserv-dashboard/common/pkg/database"
 	"sync"
 	"testing"
 )

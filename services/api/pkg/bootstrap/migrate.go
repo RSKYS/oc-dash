@@ -1,10 +1,10 @@
 package bootstrap
 
 import (
-	"github.com/mmtaee/ocserv-users-management/api/internal/models"
-	commonModels "github.com/mmtaee/ocserv-users-management/common/models"
-	"github.com/mmtaee/ocserv-users-management/common/pkg/database"
-	"github.com/mmtaee/ocserv-users-management/common/pkg/logger"
+	"github.com/mmtaee/ocserv-dashboard/api/internal/models"
+	commonModels "github.com/mmtaee/ocserv-dashboard/common/models"
+	"github.com/mmtaee/ocserv-dashboard/common/pkg/database"
+	"github.com/mmtaee/ocserv-dashboard/common/pkg/logger"
 )
 
 var tables = []interface{}{

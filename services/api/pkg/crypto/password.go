@@ -4,7 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"github.com/mmtaee/ocserv-users-management/common/pkg/config"
+	"github.com/mmtaee/ocserv-dashboard/common/pkg/config"
 	"math/rand"
 )
 

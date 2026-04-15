@@ -2,10 +2,10 @@ package bootstrap
 
 import (
 	"context"
-	"github.com/mmtaee/ocserv-users-management/api/pkg/routing"
-	"github.com/mmtaee/ocserv-users-management/common/pkg/config"
-	"github.com/mmtaee/ocserv-users-management/common/pkg/database"
-	"github.com/mmtaee/ocserv-users-management/common/pkg/logger"
+	"github.com/mmtaee/ocserv-dashboard/api/pkg/routing"
+	"github.com/mmtaee/ocserv-dashboard/common/pkg/config"
+	"github.com/mmtaee/ocserv-dashboard/common/pkg/database"
+	"github.com/mmtaee/ocserv-dashboard/common/pkg/logger"
 	"os"
 	"os/signal"
 	"syscall"
