@@ -55,6 +55,7 @@ models/ocserv-user-ocserv-users-sync-response.ts
 models/ocserv-user-statistics-response.ts
 models/ocserv-user-sync-ocpasswd-request.ts
 models/ocserv-user-update-ocserv-user-data.ts
+models/ocserv-user-user-stats-response.ts
 models/repository-top-bandwidth-users.ts
 models/repository-total-bandwidths.ts
 models/request-error-response.ts

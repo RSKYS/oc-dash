@@ -36,6 +36,8 @@ import type { OcservUserStatisticsResponse } from '../models';
 // @ts-ignore
 import type { OcservUserUpdateOcservUserData } from '../models';
 // @ts-ignore
+import type { OcservUserUserStatsResponse } from '../models';
+// @ts-ignore
 import type { RequestErrorResponse } from '../models';
 /**
  * OcservUsersApi - axios parameter creator
@@ -51,11 +53,15 @@ export const OcservUsersApiAxiosParamCreator = function (configuration?: Configu
          * @param {number} [size] Number of items per page
          * @param {string} [order] Field to order by
          * @param {OcservUsersGetSortEnum} [sort] Sort order, either ASC or DESC
+         * @param {boolean} [online] online users and ignore other filters
          * @param {string} [q] ocserv username q search
+         * @param {boolean} [active] active users
+         * @param {boolean} [deactivated] deactivated users
+         * @param {boolean} [locked] locked users
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ocservUsersGet: async (authorization: string, page?: number, size?: number, order?: string, sort?: OcservUsersGetSortEnum, q?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        ocservUsersGet: async (authorization: string, page?: number, size?: number, order?: string, sort?: OcservUsersGetSortEnum, online?: boolean, q?: string, active?: boolean, deactivated?: boolean, locked?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'authorization' is not null or undefined
             assertParamExists('ocservUsersGet', 'authorization', authorization)
             const localVarPath = `/ocserv/users`;
@@ -86,8 +92,24 @@ export const OcservUsersApiAxiosParamCreator = function (configuration?: Configu
                 localVarQueryParameter['sort'] = sort;
             }
 
+            if (online !== undefined) {
+                localVarQueryParameter['online'] = online;
+            }
+
             if (q !== undefined) {
                 localVarQueryParameter['q'] = q;
+            }
+
+            if (active !== undefined) {
+                localVarQueryParameter['active'] = active;
+            }
+
+            if (deactivated !== undefined) {
+                localVarQueryParameter['deactivated'] = deactivated;
+            }
+
+            if (locked !== undefined) {
+                localVarQueryParameter['locked'] = locked;
             }
 
 
@@ -140,6 +162,42 @@ export const OcservUsersApiAxiosParamCreator = function (configuration?: Configu
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(request, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Result of all user simple stats
+         * @summary Result of all user simple stats
+         * @param {string} authorization Bearer TOKEN
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ocservUsersStatsGet: async (authorization: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('ocservUsersStatsGet', 'authorization', authorization)
+            const localVarPath = `/ocserv/users/stats`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -506,12 +564,16 @@ export const OcservUsersApiFp = function(configuration?: Configuration) {
          * @param {number} [size] Number of items per page
          * @param {string} [order] Field to order by
          * @param {OcservUsersGetSortEnum} [sort] Sort order, either ASC or DESC
+         * @param {boolean} [online] online users and ignore other filters
          * @param {string} [q] ocserv username q search
+         * @param {boolean} [active] active users
+         * @param {boolean} [deactivated] deactivated users
+         * @param {boolean} [locked] locked users
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async ocservUsersGet(authorization: string, page?: number, size?: number, order?: string, sort?: OcservUsersGetSortEnum, q?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OcservUserOcservUsersResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.ocservUsersGet(authorization, page, size, order, sort, q, options);
+        async ocservUsersGet(authorization: string, page?: number, size?: number, order?: string, sort?: OcservUsersGetSortEnum, online?: boolean, q?: string, active?: boolean, deactivated?: boolean, locked?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OcservUserOcservUsersResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ocservUsersGet(authorization, page, size, order, sort, online, q, active, deactivated, locked, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OcservUsersApi.ocservUsersGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -528,6 +590,19 @@ export const OcservUsersApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.ocservUsersPost(authorization, request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OcservUsersApi.ocservUsersPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Result of all user simple stats
+         * @summary Result of all user simple stats
+         * @param {string} authorization Bearer TOKEN
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async ocservUsersStatsGet(authorization: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OcservUserUserStatsResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ocservUsersStatsGet(authorization, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OcservUsersApi.ocservUsersStatsGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -664,7 +739,7 @@ export const OcservUsersApiFactory = function (configuration?: Configuration, ba
          * @throws {RequiredError}
          */
         ocservUsersGet(requestParameters: OcservUsersApiOcservUsersGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<OcservUserOcservUsersResponse> {
-            return localVarFp.ocservUsersGet(requestParameters.authorization, requestParameters.page, requestParameters.size, requestParameters.order, requestParameters.sort, requestParameters.q, options).then((request) => request(axios, basePath));
+            return localVarFp.ocservUsersGet(requestParameters.authorization, requestParameters.page, requestParameters.size, requestParameters.order, requestParameters.sort, requestParameters.online, requestParameters.q, requestParameters.active, requestParameters.deactivated, requestParameters.locked, options).then((request) => request(axios, basePath));
         },
         /**
          * Ocserv User creation
@@ -675,6 +750,16 @@ export const OcservUsersApiFactory = function (configuration?: Configuration, ba
          */
         ocservUsersPost(requestParameters: OcservUsersApiOcservUsersPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<ModelsOcservUser> {
             return localVarFp.ocservUsersPost(requestParameters.authorization, requestParameters.request, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Result of all user simple stats
+         * @summary Result of all user simple stats
+         * @param {OcservUsersApiOcservUsersStatsGetRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ocservUsersStatsGet(requestParameters: OcservUsersApiOcservUsersStatsGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<OcservUserUserStatsResponse> {
+            return localVarFp.ocservUsersStatsGet(requestParameters.authorization, options).then((request) => request(axios, basePath));
         },
         /**
          * Restore and activate expired Ocserv User accounts
@@ -801,11 +886,39 @@ export interface OcservUsersApiOcservUsersGetRequest {
     readonly sort?: OcservUsersGetSortEnum
 
     /**
+     * online users and ignore other filters
+     * @type {boolean}
+     * @memberof OcservUsersApiOcservUsersGet
+     */
+    readonly online?: boolean
+
+    /**
      * ocserv username q search
      * @type {string}
      * @memberof OcservUsersApiOcservUsersGet
      */
     readonly q?: string
+
+    /**
+     * active users
+     * @type {boolean}
+     * @memberof OcservUsersApiOcservUsersGet
+     */
+    readonly active?: boolean
+
+    /**
+     * deactivated users
+     * @type {boolean}
+     * @memberof OcservUsersApiOcservUsersGet
+     */
+    readonly deactivated?: boolean
+
+    /**
+     * locked users
+     * @type {boolean}
+     * @memberof OcservUsersApiOcservUsersGet
+     */
+    readonly locked?: boolean
 }
 
 /**
@@ -827,6 +940,20 @@ export interface OcservUsersApiOcservUsersPostRequest {
      * @memberof OcservUsersApiOcservUsersPost
      */
     readonly request: OcservUserCreateOcservUserData
+}
+
+/**
+ * Request parameters for ocservUsersStatsGet operation in OcservUsersApi.
+ * @export
+ * @interface OcservUsersApiOcservUsersStatsGetRequest
+ */
+export interface OcservUsersApiOcservUsersStatsGetRequest {
+    /**
+     * Bearer TOKEN
+     * @type {string}
+     * @memberof OcservUsersApiOcservUsersStatsGet
+     */
+    readonly authorization: string
 }
 
 /**
@@ -1041,7 +1168,7 @@ export class OcservUsersApi extends BaseAPI {
      * @memberof OcservUsersApi
      */
     public ocservUsersGet(requestParameters: OcservUsersApiOcservUsersGetRequest, options?: RawAxiosRequestConfig) {
-        return OcservUsersApiFp(this.configuration).ocservUsersGet(requestParameters.authorization, requestParameters.page, requestParameters.size, requestParameters.order, requestParameters.sort, requestParameters.q, options).then((request) => request(this.axios, this.basePath));
+        return OcservUsersApiFp(this.configuration).ocservUsersGet(requestParameters.authorization, requestParameters.page, requestParameters.size, requestParameters.order, requestParameters.sort, requestParameters.online, requestParameters.q, requestParameters.active, requestParameters.deactivated, requestParameters.locked, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1054,6 +1181,18 @@ export class OcservUsersApi extends BaseAPI {
      */
     public ocservUsersPost(requestParameters: OcservUsersApiOcservUsersPostRequest, options?: RawAxiosRequestConfig) {
         return OcservUsersApiFp(this.configuration).ocservUsersPost(requestParameters.authorization, requestParameters.request, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Result of all user simple stats
+     * @summary Result of all user simple stats
+     * @param {OcservUsersApiOcservUsersStatsGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof OcservUsersApi
+     */
+    public ocservUsersStatsGet(requestParameters: OcservUsersApiOcservUsersStatsGetRequest, options?: RawAxiosRequestConfig) {
+        return OcservUsersApiFp(this.configuration).ocservUsersStatsGet(requestParameters.authorization, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

@@ -34,6 +34,7 @@ export * from './ocserv-user-ocserv-users-sync-response';
 export * from './ocserv-user-statistics-response';
 export * from './ocserv-user-sync-ocpasswd-request';
 export * from './ocserv-user-update-ocserv-user-data';
+export * from './ocserv-user-user-stats-response';
 export * from './repository-top-bandwidth-users';
 export * from './repository-total-bandwidths';
 export * from './request-error-response';
