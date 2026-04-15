@@ -3,15 +3,21 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/mmtaee/ocserv-dashboard/common/models"
+	"github.com/mmtaee/ocserv-dashboard/common/ocserv/group"
+	"github.com/mmtaee/ocserv-dashboard/common/ocserv/user"
 	"github.com/mmtaee/ocserv-dashboard/common/pkg/database"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 	"io"
+	"strings"
+	"sync"
 )
 
 type BackupRepository struct {
-	db *gorm.DB
+	db                    *gorm.DB
+	commonOcservGroupRepo group.OcservGroupInterface
+	commonOcservUserRepo  user.OcservUserInterface
 }
 
 type BackupRepositoryInterface interface {
@@ -23,7 +29,9 @@ type BackupRepositoryInterface interface {
 
 func NewBackupRepository() *BackupRepository {
 	return &BackupRepository{
-		db: database.GetConnection(),
+		db:                    database.GetConnection(),
+		commonOcservGroupRepo: group.NewOcservGroup(),
+		commonOcservUserRepo:  user.NewOcservUser(),
 	}
 }
 
@@ -126,12 +134,58 @@ func (b *BackupRepository) OcservGroupRestore(ctx context.Context, users *[]mode
 		}
 	}
 
-	if len(toInsert) > 0 {
-		err = b.db.WithContext(ctx).
-			Clauses(clause.OnConflict{DoNothing: true}).
-			Create(&toInsert).Error
+	if len(toInsert) == 0 {
+		return &insertedNames, &dbExisting, nil
 	}
-	return &insertedNames, &dbExisting, err
+
+	var wg sync.WaitGroup
+	errCh := make(chan error, len(toInsert))
+	sem := make(chan struct{}, 10) // limit concurrency
+
+	for _, g := range toInsert {
+		wg.Add(1)
+
+		go func(g models.OcservGroup) {
+			defer wg.Done()
+
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			txErr := b.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+				res := tx.Create(&g)
+				if res.Error != nil {
+					return res.Error
+				}
+				if res.RowsAffected == 0 {
+					return nil
+				}
+
+				if err = b.commonOcservGroupRepo.Create(g.Name, g.Config); err != nil {
+					return err
+				}
+
+				return nil
+			})
+
+			if txErr != nil {
+				errCh <- fmt.Errorf("group %s: %w", g.Name, txErr)
+			}
+		}(g)
+	}
+
+	wg.Wait()
+	close(errCh)
+
+	var errs []string
+	for e := range errCh {
+		errs = append(errs, e.Error())
+	}
+
+	if len(errs) > 0 {
+		return &insertedNames, &dbExisting, fmt.Errorf(strings.Join(errs, "; "))
+	}
+
+	return &insertedNames, &dbExisting, nil
 }
 
 func (b *BackupRepository) OcservUserBackup(ctx context.Context, writer io.Writer) error {
@@ -214,10 +268,56 @@ func (b *BackupRepository) OcservUserRestore(ctx context.Context, users *[]model
 		}
 	}
 
-	if len(toInsert) > 0 {
-		err = b.db.WithContext(ctx).
-			Clauses(clause.OnConflict{DoNothing: true}).
-			Create(&toInsert).Error
+	if len(toInsert) == 0 {
+		return &insertedNames, &dbExisting, nil
 	}
-	return &insertedNames, &dbExisting, err
+
+	var wg sync.WaitGroup
+	errCh := make(chan error, len(toInsert))
+	sem := make(chan struct{}, 10)
+
+	for _, u := range toInsert {
+		wg.Add(1)
+
+		go func(u models.OcservUser) {
+			defer wg.Done()
+
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			txErr := b.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+				res := tx.Create(&u)
+				if res.Error != nil {
+					return res.Error
+				}
+				if res.RowsAffected == 0 {
+					return nil
+				}
+
+				if err = b.commonOcservUserRepo.Create(u.Group, u.Username, u.Password, u.Config); err != nil {
+					return err
+				}
+
+				return nil
+			})
+
+			if txErr != nil {
+				errCh <- fmt.Errorf("user %s: %w", u.Username, txErr)
+			}
+		}(u)
+	}
+
+	wg.Wait()
+	close(errCh)
+
+	var errs []string
+	for e := range errCh {
+		errs = append(errs, e.Error())
+	}
+
+	if len(errs) > 0 {
+		return &insertedNames, &dbExisting, fmt.Errorf(strings.Join(errs, "; "))
+	}
+
+	return &insertedNames, &dbExisting, nil
 }
