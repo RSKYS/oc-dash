@@ -152,5 +152,6 @@ fi
 
 chmod 600 /dev/net/tun
 
-cd /usr/local/bin || exit
+cd /usr/local/bin || exit # restore state to app workdir
+
 exec "$@"
