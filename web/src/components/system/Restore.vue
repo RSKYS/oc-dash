@@ -8,7 +8,7 @@ import RestoreResultDialog from '@/components/system/RestoreResultDialog.vue';
 
 const { t } = useI18n();
 
-const restoreType = ref<'users' | 'groups'>('users');
+const restoreType = ref<'users' | 'groups'>('groups');
 const file = ref<File | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 const showResults = ref(false);
