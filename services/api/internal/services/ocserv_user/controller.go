@@ -13,6 +13,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"net/http"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 )
@@ -43,7 +44,11 @@ func New() *Controller {
 // @Param 		 size query int false "Number of items per page" minimum(1) maximum(100) name(size)
 // @Param 		 order query string false "Field to order by"
 // @Param 		 sort query string false "Sort order, either ASC or DESC" Enums(ASC, DESC)
+// @Param 		 online query bool false "online users and ignore other filters"
 // @Param 		 q query string false "ocserv username q search" minLength(2)
+// @Param 		 active query bool false "active users"
+// @Param 		 deactivated query bool false "deactivated users"
+// @Param 		 locked query bool false "locked users"
 // @Param        Authorization header string true "Bearer TOKEN"
 // @Failure      400 {object} request.ErrorResponse
 // @Failure      401 {object} middlewares.Unauthorized
@@ -51,8 +56,9 @@ func New() *Controller {
 // @Router       /ocserv/users [get]
 func (ctl *Controller) OcservUsers(c echo.Context) error {
 	owner := ""
+
 	val, ok := c.Get("isAdmin").(bool)
-	if !ok || !val { // not admin or missing
+	if !ok || !val {
 		usernameVal, ok := c.Get("username").(string)
 		if !ok || usernameVal == "" {
 			return ctl.request.BadRequest(c, errors.New("invalid user uid"))
@@ -60,31 +66,75 @@ func (ctl *Controller) OcservUsers(c echo.Context) error {
 		owner = usernameVal
 	}
 
+	q := c.QueryParam("q")
 	pagination := ctl.request.Pagination(c)
 
-	q := c.QueryParam("q")
-
-	ocservUsers, total, err := ctl.ocservUserRepo.Users(c.Request().Context(), pagination, owner, q)
-	if err != nil {
+	var f repository.UserFilters
+	if err := ctl.request.DoValidate(c, &f); err != nil {
 		return ctl.request.BadRequest(c, err)
 	}
 
-	if len(ocservUsers) > 0 {
-		onlineUsers, err := ctl.ocservOcctlRepo.OnlineUsers()
+	ctx := c.Request().Context()
 
+	// -------------------------
+	// ONLINE FILTER MODE
+	// -------------------------
+	if c.QueryParam("online") == "true" {
+		onlineUsers, err := ctl.ocservOcctlRepo.OnlineUsers()
 		if err != nil {
 			return ctl.request.BadRequest(c, err)
 		}
 
-		// it change O(n²) to O(n) for user count grows
+		users, total, err := ctl.ocservUserRepo.UsersByUsername(
+			ctx,
+			pagination,
+			owner,
+			onlineUsers,
+			q,
+		)
+		if err != nil {
+			return ctl.request.BadRequest(c, err)
+		}
+
+		return c.JSON(http.StatusOK, OcservUsersResponse{
+			Meta: request.Meta{
+				Page:         pagination.Page,
+				TotalRecords: total,
+				PageSize:     pagination.PageSize,
+			},
+			Result: users,
+		})
+	}
+
+	// -------------------------
+	// NORMAL MODE
+	// -------------------------
+	users, total, err := ctl.ocservUserRepo.Users(
+		ctx,
+		pagination,
+		owner,
+		q,
+		f,
+	)
+	if err != nil {
+		return ctl.request.BadRequest(c, err)
+	}
+
+	// attach online status
+	if len(users) > 0 {
+		onlineUsers, err := ctl.ocservOcctlRepo.OnlineUsers()
+		if err != nil {
+			return ctl.request.BadRequest(c, err)
+		}
+
 		onlineMap := make(map[string]struct{}, len(onlineUsers))
 		for _, u := range onlineUsers {
 			onlineMap[u] = struct{}{}
 		}
 
-		for i := range ocservUsers {
-			if _, ok := onlineMap[ocservUsers[i].Username]; ok {
-				ocservUsers[i].IsOnline = true
+		for i := range users {
+			if _, ok := onlineMap[users[i].Username]; ok {
+				users[i].IsOnline = true
 			}
 		}
 	}
@@ -95,7 +145,7 @@ func (ctl *Controller) OcservUsers(c echo.Context) error {
 			TotalRecords: total,
 			PageSize:     pagination.PageSize,
 		},
-		Result: ocservUsers,
+		Result: users,
 	})
 }
 
@@ -707,4 +757,66 @@ func (ctl *Controller) ActivateExpiredOcservUsers(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, nil)
+}
+
+// UserStats     Result of all user simple stats
+//
+// @Summary      Result of all user simple stats
+// @Description  Result of all user simple stats
+// @Tags         Ocserv(Users)
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "Bearer TOKEN"
+// @Failure      400 {object} request.ErrorResponse
+// @Failure      401 {object} middlewares.Unauthorized
+// @Success      200 {object} UserStatsResponse
+// @Router       /ocserv/users/stats [get]
+func (ctl *Controller) UserStats(c echo.Context) error {
+	var wg sync.WaitGroup
+	var onlineUsers []string
+	var result repository.UserStatsResult
+
+	errChan := make(chan error, 2)
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+
+		users, err := ctl.ocservOcctlRepo.OnlineUsers()
+		if err != nil {
+			errChan <- fmt.Errorf("failed to get online users: %w", err)
+			return
+		}
+		onlineUsers = users
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		res, err := ctl.ocservUserRepo.UsersStat(c.Request().Context())
+		if err != nil {
+			errChan <- fmt.Errorf("failed to get users stats: %w", err)
+			return
+		}
+		result = res
+	}()
+
+	wg.Wait()
+	close(errChan)
+
+	var errs []string
+	for e := range errChan {
+		errs = append(errs, e.Error())
+	}
+
+	if len(errs) > 0 {
+		return ctl.request.BadRequest(c, errors.New(strings.Join(errs, "; ")))
+	}
+
+	return c.JSON(http.StatusOK, UserStatsResponse{
+		Online:      len(onlineUsers),
+		Active:      result.Active,
+		Deactivated: result.Deactivated,
+		Locked:      result.Locked,
+	})
 }

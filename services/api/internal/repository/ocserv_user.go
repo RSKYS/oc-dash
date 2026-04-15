@@ -27,6 +27,18 @@ type OcpasswdUser struct {
 	Group    string `json:"group" validate:"required"`
 }
 
+type UserStatsResult struct {
+	Active      int64
+	Deactivated int64
+	Locked      int64
+}
+
+type UserFilters struct {
+	Active      *bool
+	Deactivated *bool
+	Locked      *bool
+}
+
 type OcservUserRepository struct {
 	db                    *gorm.DB
 	commonOcservUserRepo  user.OcservUserInterface
@@ -34,7 +46,8 @@ type OcservUserRepository struct {
 }
 
 type OcservUserCRUD interface {
-	Users(ctx context.Context, pagination *request.Pagination, owner string, q string) ([]models.OcservUser, int64, error)
+	Users(ctx context.Context, pagination *request.Pagination, owner string, q string, filters UserFilters) ([]models.OcservUser, int64, error)
+	UsersByUsername(ctx context.Context, pagination *request.Pagination, owner string, usernames []string, q string) ([]models.OcservUser, int64, error)
 	Create(ctx context.Context, user *models.OcservUser) (*models.OcservUser, error)
 	GetByUID(ctx context.Context, uid string) (*models.OcservUser, error)
 	GetByUsername(ctx context.Context, username string) (*models.OcservUser, error)
@@ -52,6 +65,7 @@ type OcservUserStats interface {
 	TotalBandwidth(ctx context.Context) (TotalBandwidths, error)
 	TotalBandwidthDateRange(ctx context.Context, dateStart, dateEnd *time.Time) (TotalBandwidths, error)
 	TotalBandwidthUserDateRange(ctx context.Context, id string, dateStart, dateEnd *time.Time) (TotalBandwidths, error)
+	UsersStat(ctx context.Context) (UserStatsResult, error)
 }
 
 type OcservUserPassword interface {
@@ -85,7 +99,13 @@ func NewtOcservUserRepository() *OcservUserRepository {
 	}
 }
 
-func (o *OcservUserRepository) Users(ctx context.Context, pagination *request.Pagination, owner string, q string) (
+func (o *OcservUserRepository) Users(
+	ctx context.Context,
+	pagination *request.Pagination,
+	owner string,
+	q string,
+	filters UserFilters,
+) (
 	[]models.OcservUser, int64, error,
 ) {
 	var totalRecords int64
@@ -96,6 +116,18 @@ func (o *OcservUserRepository) Users(ctx context.Context, pagination *request.Pa
 		}
 		if len(q) >= 2 {
 			db = db.Where("LOWER(username) LIKE ?", "%"+strings.ToLower(q)+"%")
+		}
+
+		if filters.Active != nil && *filters.Active {
+			db = db.Where("deactivated_at IS NULL AND is_locked = false")
+		}
+
+		if filters.Deactivated != nil && *filters.Deactivated {
+			db = db.Where("deactivated_at IS NOT NULL")
+		}
+
+		if filters.Locked != nil && *filters.Locked {
+			db = db.Where("is_locked = true")
 		}
 		return db
 	}
@@ -110,6 +142,53 @@ func (o *OcservUserRepository) Users(ctx context.Context, pagination *request.Pa
 
 	query := applyFilters(txPaginator.Model(&ocservUser))
 	if err := query.Find(&ocservUser).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return ocservUser, totalRecords, nil
+}
+
+func (o *OcservUserRepository) UsersByUsername(
+	ctx context.Context,
+	pagination *request.Pagination,
+	owner string,
+	usernames []string,
+	q string,
+) ([]models.OcservUser, int64, error) {
+	applyFilters := func(db *gorm.DB) *gorm.DB {
+		if owner != "" {
+			db = db.Where("owner = ?", owner)
+		}
+
+		if len(q) >= 2 {
+			db = db.Where("LOWER(username) LIKE ?", "%"+strings.ToLower(q)+"%")
+		}
+
+		return db
+	}
+
+	base := o.db.WithContext(ctx).
+		Model(&models.OcservUser{}).
+		Where("username IN ?", usernames)
+
+	countDB := applyFilters(base)
+
+	var totalRecords int64
+	if err := countDB.Count(&totalRecords).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if totalRecords == 0 {
+		return []models.OcservUser{}, 0, nil
+	}
+
+	queryDB := applyFilters(base)
+
+	var ocservUser []models.OcservUser
+
+	queryDB = request.Paginator(ctx, queryDB, pagination)
+
+	if err := queryDB.Find(&ocservUser).Error; err != nil {
 		return nil, 0, err
 	}
 
@@ -595,4 +674,23 @@ func (o *OcservUserRepository) RestoreExpired(ctx context.Context, uid string, e
 
 		return nil
 	})
+}
+
+func (o *OcservUserRepository) UsersStat(ctx context.Context) (UserStatsResult, error) {
+	var result UserStatsResult
+
+	err := o.db.WithContext(ctx).
+		Model(&models.OcservUser{}).
+		Select(`
+			COUNT(*) FILTER (WHERE deactivated_at IS NULL AND is_locked = false) AS active,
+			COUNT(*) FILTER (WHERE deactivated_at IS NOT NULL) AS deactivated,
+			COUNT(*) FILTER (WHERE is_locked = true) AS locked
+		`).
+		Scan(&result).Error
+
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
 }

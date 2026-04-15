@@ -1010,10 +1010,34 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "boolean",
+                        "description": "online users and ignore other filters",
+                        "name": "online",
+                        "in": "query"
+                    },
+                    {
                         "minLength": 2,
                         "type": "string",
                         "description": "ocserv username q search",
                         "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "active users",
+                        "name": "active",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "deactivated users",
+                        "name": "deactivated",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "locked users",
+                        "name": "locked",
                         "in": "query"
                     },
                     {
@@ -1272,6 +1296,50 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/models.DailyTraffic"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/request.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middlewares.Unauthorized"
+                        }
+                    }
+                }
+            }
+        },
+        "/ocserv/users/stats": {
+            "get": {
+                "description": "Result of all user simple stats",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ocserv(Users)"
+                ],
+                "summary": "Result of all user simple stats",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer TOKEN",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ocserv_user.UserStatsResponse"
                         }
                     },
                     "400": {
@@ -3411,6 +3479,23 @@ const docTemplate = `{
                     "type": "boolean",
                     "default": false,
                     "example": false
+                }
+            }
+        },
+        "ocserv_user.UserStatsResponse": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "integer"
+                },
+                "deactivated": {
+                    "type": "integer"
+                },
+                "locked": {
+                    "type": "integer"
+                },
+                "online": {
+                    "type": "integer"
                 }
             }
         },
