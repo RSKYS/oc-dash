@@ -20,7 +20,7 @@ services:
       - /dev/net/tun:/dev/net/tun
     volumes:
       - /opt/ocserv_dashboard/docker_volumes/ocserv:/etc/ocserv
-      - /opt/ocserv_dashboard/docker_volumes/db:/app/db
+      - /opt/ocserv_dashboard/docker_volumes/db:/usr/local/bin/db
     ports:
       - ${OCSERV_PORT:-443}:443/tcp
       - ${OCSERV_PORT:-443}:443/udp
