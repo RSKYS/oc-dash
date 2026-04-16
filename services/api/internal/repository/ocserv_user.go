@@ -33,12 +33,6 @@ type UserStatsResult struct {
 	Locked      int64
 }
 
-type UserFilters struct {
-	Active      *bool
-	Deactivated *bool
-	Locked      *bool
-}
-
 type OcservUserRepository struct {
 	db                    *gorm.DB
 	commonOcservUserRepo  user.OcservUserInterface
@@ -46,7 +40,7 @@ type OcservUserRepository struct {
 }
 
 type OcservUserCRUD interface {
-	Users(ctx context.Context, pagination *request.Pagination, owner string, q string, filters UserFilters) ([]models.OcservUser, int64, error)
+	Users(ctx context.Context, pagination *request.Pagination, owner string, q string, filters string) ([]models.OcservUser, int64, error)
 	UsersByUsername(ctx context.Context, pagination *request.Pagination, owner string, usernames []string, q string) ([]models.OcservUser, int64, error)
 	Create(ctx context.Context, user *models.OcservUser) (*models.OcservUser, error)
 	GetByUID(ctx context.Context, uid string) (*models.OcservUser, error)
@@ -104,7 +98,7 @@ func (o *OcservUserRepository) Users(
 	pagination *request.Pagination,
 	owner string,
 	q string,
-	filters UserFilters,
+	filter string,
 ) (
 	[]models.OcservUser, int64, error,
 ) {
@@ -118,17 +112,16 @@ func (o *OcservUserRepository) Users(
 			db = db.Where("LOWER(username) LIKE ?", "%"+strings.ToLower(q)+"%")
 		}
 
-		if filters.Active != nil && *filters.Active {
+		switch filter {
+		case "active":
 			db = db.Where("deactivated_at IS NULL AND is_locked = false")
-		}
-
-		if filters.Deactivated != nil && *filters.Deactivated {
+		case "deactivated":
 			db = db.Where("deactivated_at IS NOT NULL")
+		case "locked":
+			db = db.Where("is_locked = true")
+		default:
 		}
 
-		if filters.Locked != nil && *filters.Locked {
-			db = db.Where("is_locked = true")
-		}
 		return db
 	}
 

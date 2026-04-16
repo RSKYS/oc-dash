@@ -101,11 +101,14 @@ func (c *OcservUserConfig) Scan(value interface{}) error {
 }
 
 func (o *OcservUser) BeforeUpdate(tx *gorm.DB) (err error) {
-	if o.TrafficType != "" {
-		if !validateTrafficType(o.TrafficType) {
-			return fmt.Errorf("invalid TrafficType: %s", o.TrafficType)
-		}
+	if o.TrafficType == "" {
+		o.TrafficType = Free
 	}
+
+	if !validateTrafficType(o.TrafficType) {
+		return fmt.Errorf("invalid TrafficType: %s", o.TrafficType)
+	}
+
 	if o.TrafficType == Free {
 		o.TrafficSize = 0
 	}
@@ -113,9 +116,14 @@ func (o *OcservUser) BeforeUpdate(tx *gorm.DB) (err error) {
 }
 
 func (o *OcservUser) BeforeCreate(tx *gorm.DB) (err error) {
+	if o.TrafficType == "" {
+		o.TrafficType = Free
+	}
+
 	if !validateTrafficType(o.TrafficType) {
 		return fmt.Errorf("invalid TrafficType: %s", o.TrafficType)
 	}
+
 	if o.TrafficType == Free {
 		o.TrafficSize = 0
 	}

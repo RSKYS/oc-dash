@@ -44,11 +44,8 @@ func New() *Controller {
 // @Param 		 size query int false "Number of items per page" minimum(1) maximum(100) name(size)
 // @Param 		 order query string false "Field to order by"
 // @Param 		 sort query string false "Sort order, either ASC or DESC" Enums(ASC, DESC)
-// @Param 		 online query bool false "online users and ignore other filters"
 // @Param 		 q query string false "ocserv username q search" minLength(2)
-// @Param 		 active query bool false "active users"
-// @Param 		 deactivated query bool false "deactivated users"
-// @Param 		 locked query bool false "locked users"
+// @Param 		 filter query string false "filter ocserv user by statues" Enums(online, active, deactivated, locked)
 // @Param        Authorization header string true "Bearer TOKEN"
 // @Failure      400 {object} request.ErrorResponse
 // @Failure      401 {object} middlewares.Unauthorized
@@ -69,9 +66,11 @@ func (ctl *Controller) OcservUsers(c echo.Context) error {
 	q := c.QueryParam("q")
 	pagination := ctl.request.Pagination(c)
 
-	var f repository.UserFilters
-	if err := ctl.request.DoValidate(c, &f); err != nil {
-		return ctl.request.BadRequest(c, err)
+	filter := c.QueryParam("filter")
+	switch filter {
+	case "online", "active", "deactivated", "locked":
+	default:
+		filter = ""
 	}
 
 	ctx := c.Request().Context()
@@ -79,7 +78,7 @@ func (ctl *Controller) OcservUsers(c echo.Context) error {
 	// -------------------------
 	// ONLINE FILTER MODE
 	// -------------------------
-	if c.QueryParam("online") == "true" {
+	if filter == "online" {
 		onlineUsers, err := ctl.ocservOcctlRepo.OnlineUsers()
 		if err != nil {
 			return ctl.request.BadRequest(c, err)
@@ -114,7 +113,7 @@ func (ctl *Controller) OcservUsers(c echo.Context) error {
 		pagination,
 		owner,
 		q,
-		f,
+		filter,
 	)
 	if err != nil {
 		return ctl.request.BadRequest(c, err)
