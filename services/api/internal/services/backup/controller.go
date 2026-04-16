@@ -3,6 +3,8 @@ package backup
 import (
 	"compress/gzip"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/mmtaee/ocserv-dashboard/api/internal/repository"
 	"github.com/mmtaee/ocserv-dashboard/api/pkg/request"
@@ -17,6 +19,17 @@ type Controller struct {
 	ocservUserRepo  repository.OcservUserRepositoryInterface
 	ocservGroupRepo repository.OcservGroupRepositoryInterface
 	backupRepo      repository.BackupRepositoryInterface
+}
+type multiReadCloser struct {
+	io.Reader
+	closers []io.Closer
+}
+
+func (m *multiReadCloser) Close() error {
+	for _, c := range m.closers {
+		_ = c.Close()
+	}
+	return nil
 }
 
 func New() *Controller {
@@ -62,7 +75,7 @@ func (ctl *Controller) OcservGroupBackup(c echo.Context) error {
 		gz,
 		defaultGroup,
 	); err != nil {
-		gz.Close()
+		_ = gz.Close()
 		return ctl.request.BadRequest(c, err)
 	}
 
@@ -87,36 +100,36 @@ func (ctl *Controller) OcservGroupBackup(c echo.Context) error {
 // @Failure      403 {object} middlewares.PermissionDenied
 // @Router       /backup/ocserv_groups [post]
 func (ctl *Controller) OcservGroupRestore(c echo.Context) error {
-	file, err := c.FormFile("file")
+	owner := c.Get("username").(string)
+	if owner == "" {
+		return ctl.request.BadRequest(c, errors.New("admin or staff username not found"))
+	}
+
+	reader, err := ctl.fileUploadValidator(c)
 	if err != nil {
 		return ctl.request.BadRequest(c, err)
 	}
 
-	src, err := file.Open()
-	if err != nil {
-		return ctl.request.BadRequest(c, err)
-	}
-	defer src.Close()
-
-	var reader io.Reader = src
-	if strings.HasSuffix(file.Filename, ".gz") {
-		gzReader, err := gzip.NewReader(src)
-		if err != nil {
-			return ctl.request.BadRequest(c, err)
-		}
-		defer gzReader.Close()
-
-		reader = gzReader
-	}
+	defer func(reader io.ReadCloser) {
+		_ = reader.Close()
+	}(reader)
 
 	type groupFile struct {
-		DefaultGroup *models.OcservGroupConfig `json:"default_group"`
-		Groups       *[]models.OcservGroup     `json:"groups"`
+		DefaultGroup *models.OcservGroupConfig `json:"default_group" validate:"required"`
+		Groups       []models.OcservGroup      `json:"groups"`
 	}
 
 	var groupData groupFile
-	if err = json.NewDecoder(reader).Decode(&groupData); err != nil {
-		return ctl.request.BadRequest(c, err)
+
+	decoder := json.NewDecoder(reader)
+	decoder.DisallowUnknownFields()
+
+	if err = decoder.Decode(&groupData); err != nil {
+		return ctl.request.BadRequest(c, errors.New("invalid json file"))
+	}
+
+	if err = decoder.Decode(&struct{}{}); err != io.EOF {
+		return ctl.request.BadRequest(c, errors.New("invalid json EOF file"))
 	}
 
 	if err = ctl.ocservGroupRepo.UpdateDefaultGroup(groupData.DefaultGroup); err != nil {
@@ -125,8 +138,8 @@ func (ctl *Controller) OcservGroupRestore(c echo.Context) error {
 
 	var inserted, existing *[]string
 
-	if len(*groupData.Groups) > 0 {
-		inserted, existing, err = ctl.backupRepo.OcservGroupRestore(c.Request().Context(), groupData.Groups)
+	if len(groupData.Groups) > 0 {
+		inserted, existing, err = ctl.backupRepo.OcservGroupRestore(c.Request().Context(), owner, &groupData.Groups)
 		if err != nil {
 			return ctl.request.BadRequest(c, err)
 		}
@@ -166,7 +179,7 @@ func (ctl *Controller) OcservUserBackup(c echo.Context) error {
 		c.Request().Context(),
 		gz,
 	); err != nil {
-		gz.Close()
+		_ = gz.Close()
 		return ctl.request.BadRequest(c, err)
 	}
 
@@ -191,31 +204,30 @@ func (ctl *Controller) OcservUserBackup(c echo.Context) error {
 // @Failure      403 {object} middlewares.PermissionDenied
 // @Router       /backup/ocserv_users [post]
 func (ctl *Controller) OcservUserRestore(c echo.Context) error {
-	file, err := c.FormFile("file")
+	owner := c.Get("username").(string)
+	if owner == "" {
+		return ctl.request.BadRequest(c, errors.New("admin or staff username not found"))
+	}
+
+	reader, err := ctl.fileUploadValidator(c)
 	if err != nil {
 		return ctl.request.BadRequest(c, err)
 	}
 
-	src, err := file.Open()
-	if err != nil {
-		return ctl.request.BadRequest(c, err)
-	}
-	defer src.Close()
-
-	var reader io.Reader = src
-	if strings.HasSuffix(file.Filename, ".gz") {
-		gzReader, err := gzip.NewReader(src)
-		if err != nil {
-			return ctl.request.BadRequest(c, err)
-		}
-		defer gzReader.Close()
-
-		reader = gzReader
-	}
+	defer func(reader io.ReadCloser) {
+		_ = reader.Close()
+	}(reader)
 
 	var users []models.OcservUser
-	if err = json.NewDecoder(reader).Decode(&users); err != nil {
-		return ctl.request.BadRequest(c, err)
+	decoder := json.NewDecoder(reader)
+	decoder.DisallowUnknownFields()
+
+	if err = decoder.Decode(&users); err != nil {
+		return ctl.request.BadRequest(c, errors.New("invalid json file"))
+	}
+
+	if err = decoder.Decode(&struct{}{}); err != io.EOF {
+		return ctl.request.BadRequest(c, errors.New("invalid json EOF file"))
 	}
 
 	if len(users) == 0 {
@@ -225,7 +237,7 @@ func (ctl *Controller) OcservUserRestore(c echo.Context) error {
 		})
 	}
 
-	inserted, existing, err := ctl.backupRepo.OcservUserRestore(c.Request().Context(), &users)
+	inserted, existing, err := ctl.backupRepo.OcservUserRestore(c.Request().Context(), owner, &users)
 	if err != nil {
 		return ctl.request.BadRequest(c, err)
 	}
@@ -234,4 +246,40 @@ func (ctl *Controller) OcservUserRestore(c echo.Context) error {
 		Inserted: inserted,
 		Existing: existing,
 	})
+}
+
+// fileUploadValidator validate request file format and extension
+func (ctl *Controller) fileUploadValidator(c echo.Context) (io.ReadCloser, error) {
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		return nil, errors.New("file is required")
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		return nil, err
+	}
+
+	filename := strings.ToLower(fileHeader.Filename)
+
+	switch {
+	case strings.HasSuffix(filename, ".json.gz"):
+		gz, err := gzip.NewReader(file)
+		if err != nil {
+			_ = file.Close()
+			return nil, fmt.Errorf("invalid gzip file")
+		}
+
+		return &multiReadCloser{
+			Reader:  gz,
+			closers: []io.Closer{gz, file},
+		}, nil
+
+	case strings.HasSuffix(filename, ".json"):
+		return file, nil
+
+	default:
+		_ = file.Close()
+		return nil, errors.New("file must be .json or .json.gz")
+	}
 }
