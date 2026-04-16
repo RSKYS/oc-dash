@@ -7,6 +7,7 @@ import {
     type ModelsOcservUser,
     ModelsOcservUserTrafficTypeEnum,
     OcservUsersApi,
+    type OcservUsersGetFilterEnum,
     type OcservUserUserStatsResponse
 } from '@/api';
 import { getAuthorization } from '@/utils/request';
@@ -50,12 +51,7 @@ const userStats = ref<OcservUserUserStatsResponse>({
     locked: 0
 });
 
-const filters = ref({
-    active: false,
-    deactivated: false,
-    online: false,
-    locked: false
-});
+const filter = ref<OcservUsersGetFilterEnum>();
 
 const getUsers = () => {
     loading.value = true;
@@ -63,7 +59,7 @@ const getUsers = () => {
         ...getAuthorization(),
         ...meta,
         q: q.value,
-        ...filters.value,
+        filter: filter.value
     })
         .then((res) => {
             users.value = res.data.result ?? [];
@@ -226,24 +222,20 @@ const updateMeta = (newMeta: Meta) => {
 
 const search = (clear: boolean = false) => {
     if (clear) {
-        q.value = ''
+        q.value = '';
     }
 
-    const hasActiveFilter =
-        filters.value.online ||
-        filters.value.active ||
-        filters.value.deactivated ||
-        filters.value.locked
-
-    if (q.value.length > 1 || clear || hasActiveFilter) {
-        getUsers()
+    if (q.value.length > 1 || clear || filter.value) {
+        getUsers();
     }
-}
+};
 
 const reload = () => {
     q.value = '';
+    filter.value = undefined;
     getUsers();
 };
+
 
 const getUserStats = () => {
     api.ocservUsersStatsGet({
@@ -253,28 +245,6 @@ const getUserStats = () => {
         Object.assign(userStats.value, res.data);
     });
 };
-
-function toggleFilter(key: keyof typeof filters.value, value: boolean | null) {
-    const val = value ?? false;
-
-    if (key === 'online') {
-        filters.value.online = val;
-
-        if (val) {
-            filters.value.active = false;
-            filters.value.deactivated = false;
-            filters.value.locked = false;
-        }
-
-        return;
-    }
-
-    filters.value[key] = val;
-
-    if (val) {
-        filters.value.online = false;
-    }
-}
 
 onMounted(() => {
     getUserStats();
@@ -305,7 +275,7 @@ onMounted(() => {
                                     {{ t('ONLINE') }} {{ t('USERS') }}
                                 </v-card-title>
 
-                                <v-card-text class="text-muted">
+                                <v-card-text class="text-muted text-h5">
                                     {{ userStats.online || 0 }}
                                 </v-card-text>
                             </v-card>
@@ -317,7 +287,7 @@ onMounted(() => {
                                     {{ t('ACTIVE') }} {{ t('USERS') }}
                                 </v-card-title>
 
-                                <v-card-text class="text-muted">
+                                <v-card-text class="text-muted text-h5">
                                     {{ userStats.active || 0 }}
                                 </v-card-text>
                             </v-card>
@@ -329,7 +299,7 @@ onMounted(() => {
                                     {{ t('DEACTIVATED') }} {{ t('USERS') }}
                                 </v-card-title>
 
-                                <v-card-text class="text-muted">
+                                <v-card-text class="text-muted text-h5">
                                     {{ userStats.deactivated }}
                                 </v-card-text>
                             </v-card>
@@ -341,7 +311,7 @@ onMounted(() => {
                                     {{ t('LOCKED') }} {{ t('USERS') }}
                                 </v-card-title>
 
-                                <v-card-text class="text-muted">
+                                <v-card-text class="text-muted text-h5">
                                     {{ userStats.locked }}
                                 </v-card-text>
                             </v-card>
@@ -368,38 +338,13 @@ onMounted(() => {
                                 />
                             </v-col>
 
-                            <v-col cols="12" md="auto" sm="5">
-                                <v-row align="center" justify="start">
-                                    <v-checkbox
-                                        v-model="filters.active"
-                                        :label="t('ACTIVE')"
-                                        hide-details
-                                        @update:modelValue="(v: boolean | null) => toggleFilter('active', v)"
-                                    />
-                                    <v-checkbox
-                                        v-model="filters.deactivated"
-                                        :label="t('DEACTIVATED')"
-                                        hide-details
-                                        @update:modelValue="(v: boolean | null) => toggleFilter('deactivated', v)"
-                                    />
-                                    <v-checkbox
-                                        v-model="filters.locked"
-                                        :label="t('LOCKED')"
-                                        hide-details
-                                        @update:modelValue="(v: boolean | null) => toggleFilter('locked', v)"
-                                    />
-                                </v-row>
-                            </v-col>
-
-                            <v-col class="ma-0 pa-0 ms-2" cols="auto">-/-</v-col>
-
-                            <v-col class="ma-0 pa-0 me-5" cols="12" lg="auto" sm="12">
-                                <v-checkbox
-                                    v-model="filters.online"
-                                    :label="t('ONLINE') + ' ' + t('USERS')"
-                                    hide-details
-                                    @update:modelValue="(v: boolean | null) => toggleFilter('online', v)"
-                                />
+                            <v-col cols="12" md="auto" sm="5" class="ma-0 pa-0 mt-5 me-5">
+                                <v-radio-group inline v-model="filter">
+                                    <v-radio value="active" :label="t('ACTIVE')" hide-details />
+                                    <v-radio value="online" :label="t('ONLINE')" hide-details />
+                                    <v-radio value="deactivated" :label="t('DEACTIVATED')" hide-details />
+                                    <v-radio value="locked" :label="t('LOCKED')" hide-details />
+                                </v-radio-group>
                             </v-col>
 
                             <v-col class="ma-0 pa-0" cols="12" md="auto">
