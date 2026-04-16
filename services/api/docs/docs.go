@@ -1010,12 +1010,6 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "boolean",
-                        "description": "online users and ignore other filters",
-                        "name": "online",
-                        "in": "query"
-                    },
-                    {
                         "minLength": 2,
                         "type": "string",
                         "description": "ocserv username q search",
@@ -1023,21 +1017,15 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "boolean",
-                        "description": "active users",
-                        "name": "active",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "deactivated users",
-                        "name": "deactivated",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "locked users",
-                        "name": "locked",
+                        "enum": [
+                            "online",
+                            "active",
+                            "deactivated",
+                            "locked"
+                        ],
+                        "type": "string",
+                        "description": "filter ocserv user by statues",
+                        "name": "filter",
                         "in": "query"
                     },
                     {

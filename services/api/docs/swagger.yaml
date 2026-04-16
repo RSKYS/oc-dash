@@ -1625,27 +1625,20 @@ paths:
         in: query
         name: sort
         type: string
-      - description: online users and ignore other filters
-        in: query
-        name: online
-        type: boolean
       - description: ocserv username q search
         in: query
         minLength: 2
         name: q
         type: string
-      - description: active users
+      - description: filter ocserv user by statues
+        enum:
+        - online
+        - active
+        - deactivated
+        - locked
         in: query
-        name: active
-        type: boolean
-      - description: deactivated users
-        in: query
-        name: deactivated
-        type: boolean
-      - description: locked users
-        in: query
-        name: locked
-        type: boolean
+        name: filter
+        type: string
       - description: Bearer TOKEN
         in: header
         name: Authorization
