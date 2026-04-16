@@ -18,6 +18,15 @@ function triggerFileSelect() {
     fileInput.value?.click();
 }
 
+const detectRestoreType= (file: File): 'users' | 'groups' => {
+    const name = file.name.toLowerCase();
+
+    if (/users/.test(name)) return 'users';
+    if (/groups/.test(name)) return 'groups';
+
+    return restoreType.value;
+}
+
 function onFileSelected(event: Event) {
     const target = event.target as HTMLInputElement;
     const selectedFile = target.files?.[0];
@@ -34,6 +43,10 @@ function onFileSelected(event: Event) {
     }
 
     file.value = selectedFile || null;
+
+    if (file.value.name) {
+        restoreType.value = detectRestoreType(selectedFile);
+    }
 }
 
 function onDrop(e: any) {
