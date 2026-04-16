@@ -53,15 +53,12 @@ export const OcservUsersApiAxiosParamCreator = function (configuration?: Configu
          * @param {number} [size] Number of items per page
          * @param {string} [order] Field to order by
          * @param {OcservUsersGetSortEnum} [sort] Sort order, either ASC or DESC
-         * @param {boolean} [online] online users and ignore other filters
          * @param {string} [q] ocserv username q search
-         * @param {boolean} [active] active users
-         * @param {boolean} [deactivated] deactivated users
-         * @param {boolean} [locked] locked users
+         * @param {OcservUsersGetFilterEnum} [filter] filter ocserv user by statues
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ocservUsersGet: async (authorization: string, page?: number, size?: number, order?: string, sort?: OcservUsersGetSortEnum, online?: boolean, q?: string, active?: boolean, deactivated?: boolean, locked?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        ocservUsersGet: async (authorization: string, page?: number, size?: number, order?: string, sort?: OcservUsersGetSortEnum, q?: string, filter?: OcservUsersGetFilterEnum, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'authorization' is not null or undefined
             assertParamExists('ocservUsersGet', 'authorization', authorization)
             const localVarPath = `/ocserv/users`;
@@ -92,24 +89,12 @@ export const OcservUsersApiAxiosParamCreator = function (configuration?: Configu
                 localVarQueryParameter['sort'] = sort;
             }
 
-            if (online !== undefined) {
-                localVarQueryParameter['online'] = online;
-            }
-
             if (q !== undefined) {
                 localVarQueryParameter['q'] = q;
             }
 
-            if (active !== undefined) {
-                localVarQueryParameter['active'] = active;
-            }
-
-            if (deactivated !== undefined) {
-                localVarQueryParameter['deactivated'] = deactivated;
-            }
-
-            if (locked !== undefined) {
-                localVarQueryParameter['locked'] = locked;
+            if (filter !== undefined) {
+                localVarQueryParameter['filter'] = filter;
             }
 
 
@@ -564,16 +549,13 @@ export const OcservUsersApiFp = function(configuration?: Configuration) {
          * @param {number} [size] Number of items per page
          * @param {string} [order] Field to order by
          * @param {OcservUsersGetSortEnum} [sort] Sort order, either ASC or DESC
-         * @param {boolean} [online] online users and ignore other filters
          * @param {string} [q] ocserv username q search
-         * @param {boolean} [active] active users
-         * @param {boolean} [deactivated] deactivated users
-         * @param {boolean} [locked] locked users
+         * @param {OcservUsersGetFilterEnum} [filter] filter ocserv user by statues
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async ocservUsersGet(authorization: string, page?: number, size?: number, order?: string, sort?: OcservUsersGetSortEnum, online?: boolean, q?: string, active?: boolean, deactivated?: boolean, locked?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OcservUserOcservUsersResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.ocservUsersGet(authorization, page, size, order, sort, online, q, active, deactivated, locked, options);
+        async ocservUsersGet(authorization: string, page?: number, size?: number, order?: string, sort?: OcservUsersGetSortEnum, q?: string, filter?: OcservUsersGetFilterEnum, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OcservUserOcservUsersResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ocservUsersGet(authorization, page, size, order, sort, q, filter, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OcservUsersApi.ocservUsersGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -739,7 +721,7 @@ export const OcservUsersApiFactory = function (configuration?: Configuration, ba
          * @throws {RequiredError}
          */
         ocservUsersGet(requestParameters: OcservUsersApiOcservUsersGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<OcservUserOcservUsersResponse> {
-            return localVarFp.ocservUsersGet(requestParameters.authorization, requestParameters.page, requestParameters.size, requestParameters.order, requestParameters.sort, requestParameters.online, requestParameters.q, requestParameters.active, requestParameters.deactivated, requestParameters.locked, options).then((request) => request(axios, basePath));
+            return localVarFp.ocservUsersGet(requestParameters.authorization, requestParameters.page, requestParameters.size, requestParameters.order, requestParameters.sort, requestParameters.q, requestParameters.filter, options).then((request) => request(axios, basePath));
         },
         /**
          * Ocserv User creation
@@ -886,13 +868,6 @@ export interface OcservUsersApiOcservUsersGetRequest {
     readonly sort?: OcservUsersGetSortEnum
 
     /**
-     * online users and ignore other filters
-     * @type {boolean}
-     * @memberof OcservUsersApiOcservUsersGet
-     */
-    readonly online?: boolean
-
-    /**
      * ocserv username q search
      * @type {string}
      * @memberof OcservUsersApiOcservUsersGet
@@ -900,25 +875,11 @@ export interface OcservUsersApiOcservUsersGetRequest {
     readonly q?: string
 
     /**
-     * active users
-     * @type {boolean}
+     * filter ocserv user by statues
+     * @type {'online' | 'active' | 'deactivated' | 'locked'}
      * @memberof OcservUsersApiOcservUsersGet
      */
-    readonly active?: boolean
-
-    /**
-     * deactivated users
-     * @type {boolean}
-     * @memberof OcservUsersApiOcservUsersGet
-     */
-    readonly deactivated?: boolean
-
-    /**
-     * locked users
-     * @type {boolean}
-     * @memberof OcservUsersApiOcservUsersGet
-     */
-    readonly locked?: boolean
+    readonly filter?: OcservUsersGetFilterEnum
 }
 
 /**
@@ -1168,7 +1129,7 @@ export class OcservUsersApi extends BaseAPI {
      * @memberof OcservUsersApi
      */
     public ocservUsersGet(requestParameters: OcservUsersApiOcservUsersGetRequest, options?: RawAxiosRequestConfig) {
-        return OcservUsersApiFp(this.configuration).ocservUsersGet(requestParameters.authorization, requestParameters.page, requestParameters.size, requestParameters.order, requestParameters.sort, requestParameters.online, requestParameters.q, requestParameters.active, requestParameters.deactivated, requestParameters.locked, options).then((request) => request(this.axios, this.basePath));
+        return OcservUsersApiFp(this.configuration).ocservUsersGet(requestParameters.authorization, requestParameters.page, requestParameters.size, requestParameters.order, requestParameters.sort, requestParameters.q, requestParameters.filter, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1300,3 +1261,13 @@ export const OcservUsersGetSortEnum = {
     DESC: 'DESC'
 } as const;
 export type OcservUsersGetSortEnum = typeof OcservUsersGetSortEnum[keyof typeof OcservUsersGetSortEnum];
+/**
+ * @export
+ */
+export const OcservUsersGetFilterEnum = {
+    ONLINE: 'online',
+    ACTIVE: 'active',
+    DEACTIVATED: 'deactivated',
+    LOCKED: 'locked'
+} as const;
+export type OcservUsersGetFilterEnum = typeof OcservUsersGetFilterEnum[keyof typeof OcservUsersGetFilterEnum];
