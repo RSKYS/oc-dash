@@ -22,9 +22,9 @@ type BackupRepository struct {
 
 type BackupRepositoryInterface interface {
 	OcservGroupBackup(ctx context.Context, writer io.Writer, defaultGroup *models.OcservGroupConfig) error
-	OcservGroupRestore(ctx context.Context, users *[]models.OcservGroup) (*[]string, *[]string, error)
+	OcservGroupRestore(ctx context.Context, owner string, users *[]models.OcservGroup) (*[]string, *[]string, error)
 	OcservUserBackup(ctx context.Context, writer io.Writer) error
-	OcservUserRestore(ctx context.Context, users *[]models.OcservUser) (*[]string, *[]string, error)
+	OcservUserRestore(ctx context.Context, owner string, users *[]models.OcservUser) (*[]string, *[]string, error)
 }
 
 func NewBackupRepository() *BackupRepository {
@@ -102,9 +102,9 @@ func (b *BackupRepository) OcservGroupBackup(ctx context.Context, writer io.Writ
 	return nil
 }
 
-func (b *BackupRepository) OcservGroupRestore(ctx context.Context, users *[]models.OcservGroup) (*[]string, *[]string, error) {
-	names := make([]string, 0, len(*users))
-	for _, u := range *users {
+func (b *BackupRepository) OcservGroupRestore(ctx context.Context, owner string, groups *[]models.OcservGroup) (*[]string, *[]string, error) {
+	names := make([]string, 0, len(*groups))
+	for _, u := range *groups {
 		names = append(names, u.Name)
 	}
 
@@ -127,7 +127,7 @@ func (b *BackupRepository) OcservGroupRestore(ctx context.Context, users *[]mode
 	var toInsert []models.OcservGroup
 	var insertedNames []string
 
-	for _, u := range *users {
+	for _, u := range *groups {
 		if _, found := existingMap[u.Name]; !found {
 			toInsert = append(toInsert, u)
 			insertedNames = append(insertedNames, u.Name)
@@ -150,6 +150,10 @@ func (b *BackupRepository) OcservGroupRestore(ctx context.Context, users *[]mode
 
 			sem <- struct{}{}
 			defer func() { <-sem }()
+
+			if g.Owner == "" {
+				g.Owner = owner
+			}
 
 			txErr := b.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 				res := tx.Create(&g)
@@ -236,7 +240,7 @@ func (b *BackupRepository) OcservUserBackup(ctx context.Context, writer io.Write
 	return nil
 }
 
-func (b *BackupRepository) OcservUserRestore(ctx context.Context, users *[]models.OcservUser) (*[]string, *[]string, error) {
+func (b *BackupRepository) OcservUserRestore(ctx context.Context, owner string, users *[]models.OcservUser) (*[]string, *[]string, error) {
 	usernames := make([]string, 0, len(*users))
 	for _, u := range *users {
 		usernames = append(usernames, u.Username)
@@ -284,6 +288,10 @@ func (b *BackupRepository) OcservUserRestore(ctx context.Context, users *[]model
 
 			sem <- struct{}{}
 			defer func() { <-sem }()
+
+			if u.Owner == "" {
+				u.Owner = owner
+			}
 
 			txErr := b.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 				res := tx.Create(&u)
