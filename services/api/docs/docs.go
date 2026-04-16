@@ -1017,6 +1017,18 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "online",
+                            "active",
+                            "deactivated",
+                            "locked"
+                        ],
+                        "type": "string",
+                        "description": "filter ocserv user by statues",
+                        "name": "filter",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "Bearer TOKEN",
                         "name": "Authorization",
@@ -1272,6 +1284,50 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/models.DailyTraffic"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/request.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middlewares.Unauthorized"
+                        }
+                    }
+                }
+            }
+        },
+        "/ocserv/users/stats": {
+            "get": {
+                "description": "Result of all user simple stats",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ocserv(Users)"
+                ],
+                "summary": "Result of all user simple stats",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer TOKEN",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ocserv_user.UserStatsResponse"
                         }
                     },
                     "400": {
@@ -3411,6 +3467,23 @@ const docTemplate = `{
                     "type": "boolean",
                     "default": false,
                     "example": false
+                }
+            }
+        },
+        "ocserv_user.UserStatsResponse": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "integer"
+                },
+                "deactivated": {
+                    "type": "integer"
+                },
+                "locked": {
+                    "type": "integer"
+                },
+                "online": {
+                    "type": "integer"
                 }
             }
         },

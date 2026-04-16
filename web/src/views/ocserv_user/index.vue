@@ -3,7 +3,13 @@ import { router } from '@/router';
 import UiParentCard from '@/components/shared/UiParentCard.vue';
 import { useI18n } from 'vue-i18n';
 import { onMounted, reactive, ref } from 'vue';
-import { type ModelsOcservUser, ModelsOcservUserTrafficTypeEnum, OcservUsersApi } from '@/api';
+import {
+    type ModelsOcservUser,
+    ModelsOcservUserTrafficTypeEnum,
+    OcservUsersApi,
+    type OcservUsersGetFilterEnum,
+    type OcservUserUserStatsResponse
+} from '@/api';
 import { getAuthorization } from '@/utils/request';
 import { bytesToGB, formatDate, trafficTypesTransformer } from '@/utils/convertors';
 import DeleteDialog from '@/components/ocserv_user/DeleteDialog.vue';
@@ -38,12 +44,22 @@ const snackbar = useSnackbarStore();
 const profileStore = useProfileStore();
 const isAdmin = ref(profileStore.isAdmin);
 
+const userStats = ref<OcservUserUserStatsResponse>({
+    active: 0,
+    deactivated: 0,
+    online: 0,
+    locked: 0
+});
+
+const filter = ref<OcservUsersGetFilterEnum>();
+
 const getUsers = () => {
     loading.value = true;
     api.ocservUsersGet({
         ...getAuthorization(),
         ...meta,
-        q: q.value
+        q: q.value,
+        filter: filter.value
     })
         .then((res) => {
             users.value = res.data.result ?? [];
@@ -93,6 +109,7 @@ const lock = (uid: string) => {
             if (index > -1) {
                 users.value[index].is_locked = true;
             }
+            getUserStats();
         })
         .finally(() => {
             snackbar.show({
@@ -114,6 +131,7 @@ const unlock = (uid: string) => {
             if (index > -1) {
                 users.value[index].is_locked = false;
             }
+            getUserStats();
         })
         .finally(() => {
             snackbar.show({
@@ -142,6 +160,7 @@ const activateUser = (expireAt: string) => {
                 users.value[index].expire_at = expireAt;
                 users.value[index].is_online = false;
             }
+            getUserStats();
         })
         .finally(() => {
             cancelActivateUser();
@@ -189,6 +208,7 @@ const deleteUser = () => {
     })
         .then((_) => {
             getUsers();
+            getUserStats();
         })
         .finally(() => {
             cancelDeleteUser();
@@ -204,15 +224,33 @@ const search = (clear: boolean = false) => {
     if (clear) {
         q.value = '';
     }
-    if (q.value.length > 1 || clear) {
+
+    if (q.value.length > 1 || clear || filter.value) {
+        if (q.value.length < 2) {
+            q.value = '';
+        }
         getUsers();
     }
 };
 
 const reload = () => {
     q.value = '';
+    filter.value = undefined;
     getUsers();
 };
+
+const getUserStats = () => {
+    api.ocservUsersStatsGet({
+        ...getAuthorization()
+    }).then((res) => {
+        console.log(res.data);
+        Object.assign(userStats.value, res.data);
+    });
+};
+
+onMounted(() => {
+    getUserStats();
+});
 </script>
 
 <template>
@@ -231,42 +269,105 @@ const reload = () => {
                     </v-btn>
                 </template>
 
+                <div class="mx-15 mb-5">
+                    <v-row align="center" justify="center">
+                        <v-col cols="12" lg="2" sm="6">
+                            <v-card class="text-center" elevation="10">
+                                <v-card-title class="text-subtitle-1 mt-2 text-capitalize">
+                                    {{ t('ONLINE') }} {{ t('USERS') }}
+                                </v-card-title>
+
+                                <v-card-text class="text-muted text-h5">
+                                    {{ userStats.online || 0 }}
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+
+                        <v-col cols="12" lg="2" sm="6">
+                            <v-card class="text-center" elevation="10">
+                                <v-card-title class="text-subtitle-1 mt-2 text-capitalize">
+                                    {{ t('ACTIVE') }} {{ t('USERS') }}
+                                </v-card-title>
+
+                                <v-card-text class="text-muted text-h5">
+                                    {{ userStats.active || 0 }}
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+
+                        <v-col cols="12" lg="2" sm="6">
+                            <v-card class="text-center" elevation="10">
+                                <v-card-title class="text-subtitle-1 mt-2 text-capitalize">
+                                    {{ t('DEACTIVATED') }} {{ t('USERS') }}
+                                </v-card-title>
+
+                                <v-card-text class="text-muted text-h5">
+                                    {{ userStats.deactivated }}
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+
+                        <v-col cols="12" lg="2" sm="6">
+                            <v-card class="text-center" elevation="10">
+                                <v-card-title class="text-subtitle-1 mt-2 text-capitalize">
+                                    {{ t('LOCKED') }} {{ t('USERS') }}
+                                </v-card-title>
+
+                                <v-card-text class="text-muted text-h5">
+                                    {{ userStats.locked }}
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+                    </v-row>
+                </div>
+
                 <v-progress-linear :active="loading" indeterminate></v-progress-linear>
 
                 <div v-if="!loading">
-                    <v-row align="center" justify="start" class="px-md-15 mb-3">
-                        <v-col cols="12" md="3" sm="5">
-                            <v-text-field
-                                :label="t('USERNAME')"
-                                v-model="q"
-                                color="primary"
-                                hide-details
-                                variant="outlined"
-                                clearable
-                                @click:clear="search(true)"
-                                @keyup.enter.native="search(false)"
-                                density="compact"
-                            />
-                        </v-col>
-                        <v-col cols="12" md="auto">
-                            <v-btn @click="search(false)" color="info" size="small">
-                                <v-icon start>mdi-magnify</v-icon>
-                                {{ t('SEARCH') }}
-                            </v-btn>
-                        </v-col>
+                    <div class="mb-3">
+                        <v-row align="center" class="px-md-15 mb-3 text-capitalize" justify="start">
+                            <v-col cols="12" md="3" sm="5">
+                                <v-text-field
+                                    v-model="q"
+                                    :label="t('USERNAME')"
+                                    clearable
+                                    color="primary"
+                                    density="compact"
+                                    hide-details
+                                    variant="outlined"
+                                    @click:clear="search(true)"
+                                    @keyup.enter.native="search(false)"
+                                />
+                            </v-col>
 
-                        <v-col cols="12" md="auto">
-                            <v-btn color="secondary" size="small" variant="outlined" @click="reload">
-                                {{ t('RELOAD') }}
-                            </v-btn>
-                        </v-col>
-                    </v-row>
+                            <v-col cols="12" md="auto" sm="5" class="ma-0 pa-0 mt-5 me-5">
+                                <v-radio-group inline v-model="filter">
+                                    <v-radio value="active" :label="t('ACTIVE')" hide-details />
+                                    <v-radio value="online" :label="t('ONLINE')" hide-details />
+                                    <v-radio value="deactivated" :label="t('DEACTIVATED')" hide-details />
+                                    <v-radio value="locked" :label="t('LOCKED')" hide-details />
+                                </v-radio-group>
+                            </v-col>
 
-                    <v-table class="px-md-15" v-if="users.length > 0">
+                            <v-col class="ma-0 pa-0" cols="12" md="auto">
+                                <v-btn color="info" size="small" @click="search(false)">
+                                    <v-icon start>mdi-magnify</v-icon>
+                                    {{ t('SEARCH') }}
+                                </v-btn>
+                            </v-col>
+
+                            <v-col cols="12" md="auto">
+                                <v-btn color="secondary" size="small" variant="outlined" @click="reload">
+                                    {{ t('RELOAD') }}
+                                </v-btn>
+                            </v-col>
+                        </v-row>
+                    </div>
+                    <v-table v-if="users.length > 0" class="px-md-15">
                         <thead>
                             <tr class="text-capitalize bg-lightprimary">
                                 <th class="text-left">{{ t('USERNAME') }}</th>
-                                <th class="text-left" v-if="isAdmin">{{ t('OWNER') }}</th>
+                                <th v-if="isAdmin" class="text-left">{{ t('OWNER') }}</th>
                                 <th class="text-left">{{ t('GROUP') }}</th>
                                 <th class="text-left">{{ t('TRAFFIC') }}</th>
                                 <th class="text-left">{{ t('BANDWIDTHS') }}</th>
@@ -313,7 +414,7 @@ const reload = () => {
                                         <br />
                                         <v-tooltip :text="`${item.rx.toLocaleString()} bytes`">
                                             <template #activator="{ props }">
-                                                <span v-bind="props" class="text-info">
+                                                <span class="text-info" v-bind="props">
                                                     {{ bytesToGB(item.rx, 6) }} GB
                                                 </span>
                                             </template>
@@ -330,7 +431,7 @@ const reload = () => {
                                         <br />
                                         <v-tooltip :text="`${item.tx.toLocaleString()} bytes`">
                                             <template #activator="{ props }">
-                                                <span v-bind="props" class="text-info">
+                                                <span class="text-info" v-bind="props">
                                                     {{ bytesToGB(item.tx, 4) }} GB
                                                 </span>
                                             </template>
@@ -396,8 +497,8 @@ const reload = () => {
                                             </v-list-item>
 
                                             <v-list-item
-                                                @click="editUser(item?.uid)"
                                                 v-if="!(item.is_locked && item.deactivated_at)"
+                                                @click="editUser(item?.uid)"
                                             >
                                                 <v-list-item-title class="text-info text-capitalize me-5">
                                                     {{ t('UPDATE') }}
@@ -484,7 +585,7 @@ const reload = () => {
                     {{ t('NO_USER_FOUND_TABLE') }}
                 </div>
 
-                <Pagination @update="updateMeta" :totalRecords="meta.total_records" />
+                <Pagination :totalRecords="meta.total_records" @update="updateMeta" />
             </UiParentCard>
         </v-col>
     </v-row>
@@ -507,9 +608,11 @@ tbody tr:nth-child(even) td {
     tbody tr:nth-child(even) td {
         background-color: #f5f5f5;
     }
+
     tbody tr:nth-child(even) td:first-child {
         border-radius: 8px 0 0 8px;
     }
+
     tbody tr:nth-child(even) td:last-child {
         border-radius: 0 8px 8px 0;
     }

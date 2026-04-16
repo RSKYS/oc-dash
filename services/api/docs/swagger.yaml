@@ -749,6 +749,17 @@ definitions:
         example: false
         type: boolean
     type: object
+  ocserv_user.UserStatsResponse:
+    properties:
+      active:
+        type: integer
+      deactivated:
+        type: integer
+      locked:
+        type: integer
+      online:
+        type: integer
+    type: object
   repository.TopBandwidthUsers:
     properties:
       top_rx:
@@ -1619,6 +1630,15 @@ paths:
         minLength: 2
         name: q
         type: string
+      - description: filter ocserv user by statues
+        enum:
+        - online
+        - active
+        - deactivated
+        - locked
+        in: query
+        name: filter
+        type: string
       - description: Bearer TOKEN
         in: header
         name: Authorization
@@ -2085,6 +2105,35 @@ paths:
       summary: Ocserv Users Statistics
       tags:
       - Ocserv(Statistics)
+  /ocserv/users/stats:
+    get:
+      consumes:
+      - application/json
+      description: Result of all user simple stats
+      parameters:
+      - description: Bearer TOKEN
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ocserv_user.UserStatsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/request.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middlewares.Unauthorized'
+      summary: Result of all user simple stats
+      tags:
+      - Ocserv(Users)
   /ocserv/users/total-bandwidth:
     get:
       consumes:

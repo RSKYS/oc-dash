@@ -67,3 +67,10 @@ type OcservUsersSyncResponse struct {
 type ActivateUserData struct {
 	ExpireAt *string `json:"expire_at" validate:"omitempty" example:"2025-12-31"`
 }
+
+type UserStatsResponse struct {
+	Online      int   `json:"online"`
+	Active      int64 `json:"active"`
+	Deactivated int64 `json:"deactivated"`
+	Locked      int64 `json:"locked"`
+}
