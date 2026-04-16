@@ -226,6 +226,9 @@ const search = (clear: boolean = false) => {
     }
 
     if (q.value.length > 1 || clear || filter.value) {
+        if (q.value.length < 2) {
+            q.value = '';
+        }
         getUsers();
     }
 };
@@ -235,7 +238,6 @@ const reload = () => {
     filter.value = undefined;
     getUsers();
 };
-
 
 const getUserStats = () => {
     api.ocservUsersStatsGet({
